@@ -1,0 +1,17 @@
+# Node.js Modülleri
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ortak Bağımlılıklar
+package-lock.json
+yarn.lock
+
+# IDE Dosyaları
+.vscode/
+.idea/
+.DS_Store
+
+# Log ve Cache Dosyaları
+logs/
+*.log

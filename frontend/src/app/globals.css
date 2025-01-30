@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #6B46C1; /* Ana mor renk */
+  --secondary: #A78BFA; /* Açık mor tonu */
+  --accent: #FBBF24; /* Sarı vurgu rengi */
+
+  --font-alegreya: "Alegreya", serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  @apply font-alegreya text-foreground bg-background;
+}
+
+button {
+  @apply bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-opacity-80 transition;
+}
+
+input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary;
+}
