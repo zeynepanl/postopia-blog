@@ -3,7 +3,7 @@ export default function CategoryList() {
   
     return (
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Categories</h3>
+        <h3 className="text-lg font-semibold text-primary mb-4">Categories</h3>
         <div className="space-y-3">
           {categories.map((category) => (
             <label key={category} className="flex items-center gap-2 cursor-pointer">

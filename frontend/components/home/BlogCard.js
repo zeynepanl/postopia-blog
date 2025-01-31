@@ -6,11 +6,19 @@ export default function BlogCard() {
       {/* Üst Kısım: Yazar Bilgisi & Beğeni */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <FaUserCircle className="text-3xl text-gray-600" />
-          <span className="text-sm text-gray-800 font-medium">Zeynep Anlayışlı</span>
+        <img
+            src="/icons/profile.svg"
+            alt="Profile"
+            className="w-8 h-8 rounded-full cursor-pointer"
+          />
+          <span className="text-md text-gray-800 font-medium">Zeynep Anlayışlı</span>
         </div>
         <div className="flex items-center gap-1 text-gray-600">
-          <FaRegHeart className="text-lg" />
+        <img
+            src="/icons/favorites.svg"
+            alt="favorites"
+            className="w-5 h-5  cursor-pointer"
+          />
           <span className="text-sm font-medium"></span>
         </div>
       </div>
@@ -21,7 +29,7 @@ export default function BlogCard() {
       </h2>
 
       {/* Açıklama */}
-      <p className="text-gray-600 text-sm leading-relaxed">
+      <p className="text-gray-600 text-md leading-relaxed">
         Say goodbye to travel hassles and hello to smooth adventures. From packing
         tips to finding the best deals, this guide will help you make the most of
         your journey with ease...
@@ -32,7 +40,7 @@ export default function BlogCard() {
 
       {/* Alt Bilgi: Tarih, Yorum, Etiketler */}
       <div className="flex justify-between items-center text-sm text-gray-500">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
             <FaRegCalendarAlt className="text-lg" />
             <span>27.01.2025</span>

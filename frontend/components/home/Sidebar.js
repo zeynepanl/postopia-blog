@@ -6,19 +6,31 @@ export default function Sidebar() {
       {/* Menü Butonları */}
       <div className="space-y-6">
         <div className="flex items-center gap-3 text-gray-900 hover:text-[#6941C6] cursor-pointer">
-          <FaPen className="text-lg" />
-          <span className="text-sm font-medium">Write Blog</span>
+        <img
+            src="/icons/write.svg"
+            alt="write"
+            className="w-6 h-6 cursor-pointer"
+          />
+          <span className="text-lg font-medium">Write Blog</span>
         </div>
         <div className="flex items-center gap-3 text-gray-900 hover:text-[#6941C6] cursor-pointer">
-          <FaHeart className="text-lg" />
-          <span className="text-sm font-medium">Favorites</span>
+        <img
+            src="/icons/favorites.svg"
+            alt="favorites"
+            className="w-6 h-6  cursor-pointer"
+          />
+          <span className="text-lg font-medium">Favorites</span>
         </div>
       </div>
 
       {/* Çıkış Butonu */}
       <div className="flex items-center gap-3 text-gray-600 hover:text-[#6941C6] cursor-pointer">
-        <FaSignOutAlt className="text-lg" />
-        <span className="text-sm font-medium">Log Out</span>
+      <img
+            src="/icons/logout.svg"
+            alt="logout"
+            className="w-6 h-6  cursor-pointer"
+          />
+        <span className="text-lg font-medium">Log Out</span>
       </div>
     </div>
   );
