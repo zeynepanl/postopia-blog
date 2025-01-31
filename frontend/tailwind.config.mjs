@@ -10,8 +10,8 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        primary: "#6B46C1", // Mor tonunu ayarla
-        secondary: "#A78BFA", // Daha açık mor tonu
+        primary: "#5F4675", // Mor tonunu ayarla
+        secondary: "#A090DF", // Daha açık mor tonu
         accent: "#FBBF24", // Sarı vurgu rengi
       },
       fontFamily: {

@@ -9,7 +9,7 @@ export default function Tags() {
           {tags.map((tag, index) => (
             <span
               key={index}
-              className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-all hover:bg-[#6B46C1] hover:text-white cursor-pointer"
+              className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-all hover:bg-primary hover:text-white cursor-pointer"
             >
               {tag}
             </span>

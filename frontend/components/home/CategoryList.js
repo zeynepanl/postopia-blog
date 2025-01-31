@@ -10,9 +10,9 @@ export default function CategoryList() {
               <input
                 type="checkbox"
                 disabled
-                className="w-4 h-4 rounded border-gray-300 text-gray-300 transition-all hover:text-[#9747FF]"
+                className="w-4 h-4 rounded border-gray-300 text-gray-300 transition-all hover:text-primary"
               />
-              <span className="text-gray-500 transition-all hover:text-[#9747FF]">
+              <span className="text-gray-500 transition-all hover:text-primary">
                 {category}
               </span>
             </label>

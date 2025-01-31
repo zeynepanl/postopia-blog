@@ -1,4 +1,5 @@
-import { FaUserCircle, FaMoon, FaSearch } from "react-icons/fa";
+import { FaUserCircle, FaRegMoon, FaSearch } from "react-icons/fa";
+
 
 export default function Header() {
   return (
@@ -7,14 +8,14 @@ export default function Header() {
         
         {/* Solda: Profil ikonu ve Ay ikonu */}
         <div className="flex items-center gap-3">
-          <FaUserCircle className="text-2xl text-gray-700" />
-          <FaMoon className="text-xl text-black" />
+          <FaUserCircle className="text-3xl text-gray-700" />
+          <FaRegMoon className="text-2xl text-black" />
         </div>
 
         {/* Orta: Sekmeler */}
         <div className="flex items-center gap-8">
           {/* Latest (aktif) */}
-          <span className="text-[#9747FF] border-b-2 border-[#9747FF] pb-1 cursor-pointer">
+          <span className="text-primary border-b-2 border-primary pb-1 cursor-pointer">
             Latest
           </span>
           {/* Popular (pasif) */}
@@ -35,7 +36,7 @@ export default function Header() {
               <FaSearch />
             </span>
           </div>
-          <span className="text-2xl font-semibold text-[#9747FF]">
+          <span className="text-4xl font-semibold text-primary">
             Postopia
           </span>
         </div>
