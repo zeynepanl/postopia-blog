@@ -32,7 +32,7 @@ export default function BlogCard({ blog }) {
         <h2 className="text-xl font-semibold text-gray-900">{blog.title}</h2>
 
         {/* Açıklama (Eğer açıklama yoksa alternatif metin) */}
-        <p className="text-gray-600 text-md leading-relaxed line-clamp-3 overflow-hidden">
+        <p className="text-gray-600 text-lg leading-relaxed line-clamp-3 overflow-hidden">
           {blog.description ? blog.description : "No description available."}
         </p>
 
@@ -40,7 +40,7 @@ export default function BlogCard({ blog }) {
         <hr className="border-gray-300" />
 
         {/* Alt Bilgi: Tarih, Yorum, Etiketler */}
-        <div className="flex justify-between items-center text-sm text-gray-500">
+        <div className="flex justify-between items-center text-md text-gray-500">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">
               <FaRegCalendarAlt className="text-lg" />
@@ -55,7 +55,7 @@ export default function BlogCard({ blog }) {
             {blog.tags.map((tag, index) => (
               <span
                 key={index}
-                className="bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-sm font-medium"
+                className="bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-md font-medium"
               >
                 {tag}
               </span>
