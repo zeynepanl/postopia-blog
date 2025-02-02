@@ -12,7 +12,7 @@ export const blogData = [
   },
   {
     id: "2",
-    author: "Ali Demir",
+    author: "Zeynep Anlayışlı",
     date: "15.02.2025",
     title: "Best Food Spots to Visit While Traveling",
     description:

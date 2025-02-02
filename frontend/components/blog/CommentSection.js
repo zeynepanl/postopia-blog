@@ -90,7 +90,7 @@ export default function CommentSection() {
       <div className="mt-4">
         <textarea
           className={`w-full p-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 ${
-    isFocused ? "h-28 border-purple-400" : "h-10"
+    isFocused ? "h-28 border-purple-400" : "h-12"
   } text-black placeholder-gray-500`}
           placeholder="Leave a comment.."
           value={newComment}
@@ -101,7 +101,7 @@ export default function CommentSection() {
         {isFocused && (
           <div className="mt-2 flex justify-end gap-2">
             <button
-              className="text-gray-600 hover:text-black"
+              className="text-white bg-secondary hover:text-black"
               onClick={() => {
                 setNewComment("");
                 setIsFocused(false);
@@ -110,7 +110,7 @@ export default function CommentSection() {
               Cancel
             </button>
             <button
-              className="border border-gray-400 px-3 py-1 rounded-lg hover:bg-gray-100"
+              className="bg-secondary border border-gray-400 px-3 py-1 rounded-lg hover:bg-gray-100"
               onClick={handleAddComment}
             >
               Send

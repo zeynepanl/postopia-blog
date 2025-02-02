@@ -21,29 +21,6 @@ export default function Header() {
           />
         </div>
 
-        {/* Orta: Sekmeler */}
-        <div className="flex items-center gap-24">
-          {["Latest", "Popular"].map((tab) => (
-            <div key={tab} className="relative cursor-pointer">
-              <span
-                onClick={() => setActiveTab(tab)}
-                className={`text-xl transition-all ${
-                  activeTab === tab ? "text-primary font-semibold" : "text-black"
-                }`}
-              >
-                {tab}
-              </span>
-
-              {/* Alt Çizgiler (Seçildiğinde Gözüken Çift Çizgi) */}
-              {activeTab === tab && (
-                <div className="absolute left-0 w-full mt-4">
-                  <div className="w-full h-[1px] bg-primary mt-[1px]"></div>
-                  <div className="w-full h-[1px] bg-primary mt-[1px]"></div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
 
         {/* Sağ: Arama ve Postopia */}
         <div className="flex items-center gap-6">
