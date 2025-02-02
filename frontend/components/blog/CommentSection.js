@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { FaRegUser, FaHeart } from "react-icons/fa";
+import { FaRegUser, FaRegHeart } from "react-icons/fa";
 import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 
 export default function CommentSection() {
@@ -138,7 +138,7 @@ export default function CommentSection() {
                   <span>{comment.author}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <FaHeart className="text-gray-700" />
+                  <FaRegHeart className="text-lg cursor-pointer hover:text-red-500 transition" />
                   <span>{comment.likes}</span>
                 </div>
               </div>

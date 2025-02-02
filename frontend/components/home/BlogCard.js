@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {FaRegComment, FaRegCalendarAlt } from "react-icons/fa";
+import { FaRegComment, FaRegCalendarAlt, FaRegHeart } from "react-icons/fa";
 
 export default function BlogCard({ blog }) {
   if (!blog) return null; // Eğer blog verisi yoksa hiçbir şey render etme
@@ -7,25 +7,16 @@ export default function BlogCard({ blog }) {
   return (
     <Link href={`/blog/${blog.id}`} className="block">
       <div className="bg-white rounded-2xl p-6 border border-gray-200 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow">
-        {/* Üst Kısım: Yazar Bilgisi & Beğeni */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img
-              src={blog.authorImage || "/icons/profile.svg"}
-              alt="Profile"
-              className="w-8 h-8 rounded-full cursor-pointer"
-            />
-            <span className="text-md text-gray-800 font-medium">
-              {blog.author}
-            </span>
-          </div>
-          <div className="flex items-center gap-1 text-gray-600">
-            <img
-              src="/icons/favorites.svg"
-              alt="favorites"
-              className="w-5 h-5 cursor-pointer"
-            />
-          </div>
+        {/* Üst Kısım: Yazar Bilgisi */}
+        <div className="flex items-center gap-3">
+          <img
+            src={blog.authorImage || "/icons/profile.svg"}
+            alt="Profile"
+            className="w-8 h-8 rounded-full cursor-pointer"
+          />
+          <span className="text-md text-gray-800 font-medium">
+            {blog.author}
+          </span>
         </div>
 
         {/* Başlık */}
@@ -39,18 +30,29 @@ export default function BlogCard({ blog }) {
         {/* Çizgi */}
         <hr className="border-gray-300" />
 
-        {/* Alt Bilgi: Tarih, Yorum, Etiketler */}
+        {/* Alt Bilgi: Tarih, Yorum, Beğeni, Etiketler */}
         <div className="flex justify-between items-center text-md text-gray-500">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6">
+            {/* Tarih */}
             <div className="flex items-center gap-2">
               <FaRegCalendarAlt className="text-lg" />
               <span>{blog.date}</span>
             </div>
+            
+            {/* Yorum */}
             <div className="flex items-center gap-2">
               <FaRegComment className="text-lg" />
               <span>{blog.comments}</span>
             </div>
+
+            {/* Beğeni (Kalp İkonu) */}
+            <div className="flex items-center gap-2">
+              <FaRegHeart className="text-lg cursor-pointer hover:text-red-500 transition" />
+              <span>{blog.likes || 0}</span>
+            </div>
           </div>
+
+          {/* Etiketler */}
           <div className="flex gap-2">
             {blog.tags.map((tag, index) => (
               <span
