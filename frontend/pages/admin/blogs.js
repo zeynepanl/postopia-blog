@@ -4,8 +4,7 @@ import { useState } from "react";
 import { FiSearch, FiFilter, FiCalendar, FiEdit, FiTrash } from "react-icons/fi";
 
 export default function BlogManagement() {
-  const [selectedCategory, setSelectedCategory] = useState("Post");
-
+  const [filterOpen, setFilterOpen] = useState(false);
   const categories = [
     { name: "Travel", count: 120 },
     { name: "Technology", count: 120 },
@@ -26,7 +25,7 @@ export default function BlogManagement() {
         {/* Main Content */}
         <div className="ml-52 mt-16 flex-1 bg-[#F9FAFB] min-h-screen p-8">
           {/* Top Controls */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 relative">
             {/* Search Bar */}
             <div className="relative">
               <input
@@ -39,12 +38,24 @@ export default function BlogManagement() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 relative">
               {/* Filter Button */}
-              <button className="px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <button
+                className="px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                onClick={() => setFilterOpen(!filterOpen)}
+              >
                 <span className="text-sm">Filter by</span>
                 <FiFilter size={16} />
               </button>
+
+              {/* Dropdown Menüsü (Sadece Görünüm) */}
+              {filterOpen && (
+                <div className="absolute top-full mt-2 left-0 w-36 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                <button className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">Category</button>
+                  <button className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">Post</button>
+                  <button className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">Comment</button>
+                </div>
+              )}
 
               {/* Date Range */}
               <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2.5 bg-white text-gray-700 hover:bg-gray-50">
