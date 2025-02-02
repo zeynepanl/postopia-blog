@@ -5,12 +5,14 @@ import { FiMoreVertical } from "react-icons/fi";
 import Sidebar from "@/components/home/Sidebar";
 import Header from "@/components/home/Header";
 import Modal from "@/components/createPost/Modal";
+import EditModal from "@/components/createPost/EditModal";
 
 
 export default function CreatePost() {
   const [posts, setPosts] = useState(blogData);
   const [menuOpen, setMenuOpen] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
 
   const toggleMenu = (postId) => {
     setMenuOpen(menuOpen === postId ? null : postId);
@@ -55,10 +57,15 @@ export default function CreatePost() {
                   {/* Açılır Menü */}
                   {menuOpen === post.id && (
                     <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-lg">
-                      <button className="block px-4 py-2 text-gray-700 bg-white w-full">
+                      <button 
+                      
+                      className="block px-4 py-2 text-gray-700 bg-white w-full">
+              
                         Delete Post
                       </button>
-                      <button className="block px-4 py-2 text-gray-700 bg-white w-full">
+                      <button 
+                       onClick={() => setEditingPost(post)}
+                      className="block px-4 py-2 text-gray-700 bg-white w-full">
                         Edit Post
                       </button>
                     </div>
@@ -73,6 +80,7 @@ export default function CreatePost() {
         </main>
       </div>
       {isModalOpen && <Modal onClose={() => setIsModalOpen(false)} />}
+      {editingPost && <EditModal post={editingPost} onClose={() => setEditingPost(null)} />}
     </div>
   );
 }
