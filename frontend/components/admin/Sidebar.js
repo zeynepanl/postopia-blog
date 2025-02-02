@@ -2,8 +2,19 @@ import Link from "next/link";
 import { FiUsers } from "react-icons/fi";
 import { PiNotebook } from "react-icons/pi";
 import { HiOutlineViewGrid } from "react-icons/hi";
+import { useDispatch } from "react-redux";
+import { logout } from "@/redux/slices/authSlice";
+import { useRouter } from "next/router";
 
 export default function Sidebar() {
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    dispatch(logout()); // Redux store'dan çıkışı yap
+    router.push("/login"); // Kullanıcıyı login sayfasına yönlendir
+  };
+
   return (
     <div className="fixed left-0 top-16 w-56 h-[calc(100vh-4rem)] p-6 border-r border-gray-200 flex flex-col justify-between bg-white">
       {/* Menü Butonları */}
@@ -28,10 +39,13 @@ export default function Sidebar() {
       </div>
 
       {/* Çıkış Butonu */}
-      <div className="flex items-center gap-3 text-gray-600 hover:text-[#6941C6] cursor-pointer">
+      <button 
+        onClick={handleLogout} 
+        className="flex items-center gap-3 bg-white text-gray-600 hover:text-[#6941C6] cursor-pointer"
+      >
         <img src="/icons/logout.svg" alt="logout" className="w-6 h-6 cursor-pointer" />
         <span className="text-lg font-medium">Log Out</span>
-      </div>
+      </button>
     </div>
   );
 }

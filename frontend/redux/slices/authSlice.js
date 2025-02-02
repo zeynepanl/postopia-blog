@@ -5,6 +5,10 @@ import authAPI from '../../api/authAPI';
 export const registerUser = createAsyncThunk('auth/registerUser', async (userData, { rejectWithValue }) => {
   try {
     const response = await authAPI.register(userData);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.token);
+    }
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response.data);
@@ -15,26 +19,44 @@ export const registerUser = createAsyncThunk('auth/registerUser', async (userDat
 export const loginUser = createAsyncThunk('auth/loginUser', async (credentials, { rejectWithValue }) => {
   try {
     const response = await authAPI.login(credentials);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.token);
+    }
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response.data);
   }
 });
 
+// Tarayıcıda olup olmadığını kontrol eden yardımcı fonksiyon
+const getLocalStorageItem = (key) => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(key);
+  }
+  return null;
+};
+
+const initialState = {
+  user: getLocalStorageItem("user") ? JSON.parse(getLocalStorageItem("user")) : null,
+  token: getLocalStorageItem("token") || null,
+  isAuthenticated: !!getLocalStorageItem("token"),
+  loading: false,
+  error: null,
+};
+
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    loading: false,
-    error: null,
-  },
+  initialState,
   reducers: {
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
     },
   },
   extraReducers: (builder) => {
