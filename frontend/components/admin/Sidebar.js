@@ -9,7 +9,7 @@ export default function Sidebar() {
       {/* Menü Butonları */}
       <div className="space-y-6">
         {/* Dashboard */}
-        <Link href="/admin" className="flex items-center gap-3 text-[#6941C6] font-medium hover:text-purple-600">
+        <Link href="/admin" className="flex items-center gap-3 text-gray-900 font-medium hover:text-purple-600">
           <HiOutlineViewGrid className="w-5 h-5" />
           <span className="text-lg">Dashboard</span>
         </Link>

@@ -2,7 +2,7 @@ import Sidebar from "@/components/admin/Sidebar";
 import StatsCard from "@/components/admin/StatsCard";
 import VisitGraph from "@/components/admin/VisitGraph";
 import CategoryGraph from "@/components/admin/CategoryGraph";
-import Header from "./Header";
+import Header from "../../components/admin/Header";
 
 export default function AdminDashboard() {
   return (
@@ -16,7 +16,7 @@ export default function AdminDashboard() {
       <Sidebar />
 
       {/* Dashboard İçerik */}
-      <main className="flex-1 p-8 mt-16 ml-56">
+      <main className="flex-1 p-8 mt-16 ml-52">
         {/* Üst Kısım - Grafik ve Kartlar */}
         <div className="flex gap-8 mb-8">
           {/* Sol taraf - Ziyaret Grafiği */}
