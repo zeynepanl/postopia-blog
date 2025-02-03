@@ -5,7 +5,7 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push("/home");  // Kullanıcıyı "/home" sayfasına yönlendir
+    router.push("/login");  // Kullanıcıyı "/home" sayfasına yönlendir
   }, []);
 
   return <div>Redirecting to home...</div>;
