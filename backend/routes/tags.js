@@ -4,23 +4,32 @@ const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-//Yeni Etiket Oluştur (Sadece Admin)
-router.post("/create", authenticateToken, isAdmin, async (req, res) => {
+//Yeni Etiket Oluştur 
+router.post("/create", authenticateToken, async (req, res) => {
   try {
     const { name } = req.body;
 
-    const existingTag = await Tag.findOne({ name });
-    if (existingTag)
-      return res.status(400).json({ message: "Tag already exists." });
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Tag name is required" });
+    }
+
+    // Aynı isimde etiket var mı kontrol et
+    let existingTag = await Tag.findOne({ name });
+    if (existingTag) {
+      return res.status(400).json({ success: false, message: "Tag already exists" });
+    }
 
     const newTag = new Tag({ name });
     await newTag.save();
 
-    res.status(201).json({ message: "Tag created successfully.", tag: newTag });
+    res.status(201).json({ success: true, tag: newTag });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Tag creation error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+module.exports = router;
 
 //Etiketleri Listele
 router.post("/list", authenticateToken, async (req, res) => {

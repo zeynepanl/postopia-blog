@@ -38,12 +38,13 @@ const getLocalStorageItem = (key) => {
 };
 
 const initialState = {
-  user: getLocalStorageItem("user") ? JSON.parse(getLocalStorageItem("user")) : null,
-  token: getLocalStorageItem("token") || null,
-  isAuthenticated: !!getLocalStorageItem("token"),
+  user: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) || null : null,
+  token: typeof window !== "undefined" ? localStorage.getItem("token") || null : null,
+  isAuthenticated: typeof window !== "undefined" && !!localStorage.getItem("token"),
   loading: false,
   error: null,
 };
+
 
 const authSlice = createSlice({
   name: 'auth',
