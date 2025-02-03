@@ -12,12 +12,14 @@ const router = express.Router();
 //Blog Yazısı Oluşturma (POST)
 router.post("/create", authenticateToken, async (req, res) => {
   try {
-    console.log("Backend'e Gelen İstek Verisi:", req.body); //Gelen veriyi logla!
+    console.log("Backend'e Gelen İstek Verisi:", req.body);
 
     const { title, content, categories, tags } = req.body;
 
     if (!title || !content) {
-      return res.status(400).json({ error: "Title ve content alanları zorunludur." });
+      return res
+        .status(400)
+        .json({ error: "Title ve content alanları zorunludur." });
     }
 
     const newBlog = new Blog({
@@ -36,7 +38,6 @@ router.post("/create", authenticateToken, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 //Blog Yazısı Güncelleme (POST)
 router.post("/update", authenticateToken, async (req, res) => {
@@ -59,7 +60,9 @@ router.post("/update", authenticateToken, async (req, res) => {
     blog.tags = tags || blog.tags;
 
     await blog.save();
-    res.status(200).json({ message: "Blog post updated successfully.", blog });
+    res
+      .status(200)
+      .json({ message: "Blog post updated successfully.", blog });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -218,6 +221,22 @@ router.post("/search", async (req, res) => {
         .json({ message: "No blog posts found with the given criteria." });
 
     res.status(200).json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Kullanıcının kendi bloglarını listeleme (POST)
+router.post("/my-blogs", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const userBlogs = await Blog.find({ author: userId })
+      .populate("author", "username email")
+      .populate("categories", "name")
+      .populate("tags", "name");
+
+    res.status(200).json(userBlogs);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
