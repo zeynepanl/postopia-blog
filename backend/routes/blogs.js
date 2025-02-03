@@ -12,7 +12,13 @@ const router = express.Router();
 //Blog Yazısı Oluşturma (POST)
 router.post("/create", authenticateToken, async (req, res) => {
   try {
+    console.log("Backend'e Gelen İstek Verisi:", req.body); //Gelen veriyi logla!
+
     const { title, content, categories, tags } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ error: "Title ve content alanları zorunludur." });
+    }
 
     const newBlog = new Blog({
       title,
@@ -30,6 +36,7 @@ router.post("/create", authenticateToken, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 //Blog Yazısı Güncelleme (POST)
 router.post("/update", authenticateToken, async (req, res) => {

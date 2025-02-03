@@ -11,6 +11,7 @@ app.use(cors());
 
 // API Route'ları
 app.use("/api", routes);
+app.use(express.urlencoded({ extended: true })); 
 
 // Hata Yönetimi
 app.use((req, res, next) => {

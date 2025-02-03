@@ -4,19 +4,26 @@ const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-//Yeni Etiket Oluştur (Sadece Admin)
-router.post("/create", authenticateToken, isAdmin, async (req, res) => {
+//Yeni Etiket Oluştur 
+router.post("/create", authenticateToken, async (req, res) => {
   try {
-    const { name } = req.body;
+    let { title, content, categories, tags } = req.body;
 
-    const existingTag = await Tag.findOne({ name });
-    if (existingTag)
-      return res.status(400).json({ message: "Tag already exists." });
+    //Gelen `tags` verisini ObjectId formatına çevir
+    if (tags && tags.length > 0) {
+      tags = tags.map(tag => new mongoose.Types.ObjectId(tag));
+    }
 
-    const newTag = new Tag({ name });
-    await newTag.save();
+    const newBlog = new Blog({
+      title,
+      content,
+      author: req.user.id,
+      categories,
+      tags,  //Artık ObjectId olarak kaydediliyor
+    });
 
-    res.status(201).json({ message: "Tag created successfully.", tag: newTag });
+    await newBlog.save();
+    res.status(201).json({ message: "Blog post created successfully.", blog: newBlog });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
