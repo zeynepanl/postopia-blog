@@ -1,9 +1,8 @@
 // frontend/redux/slices/blogSlice.js
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import blogAPI from "../../api/blogAPI";
 
-// 1) Blog ekleme
+//Blog Ekleme
 export const addBlog = createAsyncThunk(
   "blog/addBlog",
   async ({ blogData, token }, { rejectWithValue }) => {
@@ -68,23 +67,43 @@ export const updateBlog = createAsyncThunk(
   }
 );
 
+//Post Silme
+export const deleteBlog = createAsyncThunk(
+  "blog/deleteBlog",
+  async ({ blogId, token }, { rejectWithValue }) => {
+    try {
+      if (!token) {
+        return rejectWithValue("No token found.");
+      }
+      await blogAPI.deleteBlog(blogId, token); 
+      // Geriye sadece silinen blogun ID'sini döndürüyoruz
+      return blogId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
 const blogSlice = createSlice({
   name: "blog",
   initialState: {
-    blogs: [],      // Tüm bloglar
-    userBlogs: [],  // Kullanıcının kendi blogları
+    blogs: [],       // Tüm bloglar
+    userBlogs: [],   // Kullanıcının kendi blogları
     loading: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
+     
       // addBlog
+      
       .addCase(addBlog.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addBlog.fulfilled, (state, action) => {
+       
         state.blogs.push(action.payload);
         state.loading = false;
       })
@@ -93,12 +112,15 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
+  
       // fetchBlogs
+      
       .addCase(fetchBlogs.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchBlogs.fulfilled, (state, action) => {
+        
         state.blogs = action.payload;
         state.loading = false;
       })
@@ -107,12 +129,15 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
+     
       // fetchUserBlogs
+      
       .addCase(fetchUserBlogs.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchUserBlogs.fulfilled, (state, action) => {
+        
         state.userBlogs = action.payload;
         state.loading = false;
       })
@@ -121,15 +146,18 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
+      
       // updateBlog
+     
       .addCase(updateBlog.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateBlog.fulfilled, (state, action) => {
         state.loading = false;
-        const updatedBlog = action.payload; 
-        
+        const updatedBlog = action.payload;
+
+        // blogs dizisinde güncelle
         const indexAll = state.blogs.findIndex(
           (blog) => blog._id === updatedBlog._id
         );
@@ -137,6 +165,7 @@ const blogSlice = createSlice({
           state.blogs[indexAll] = updatedBlog;
         }
 
+        // userBlogs dizisinde güncelle
         const indexUser = state.userBlogs.findIndex(
           (blog) => blog._id === updatedBlog._id
         );
@@ -145,6 +174,28 @@ const blogSlice = createSlice({
         }
       })
       .addCase(updateBlog.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+     
+      // deleteBlog 
+     
+      .addCase(deleteBlog.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteBlog.fulfilled, (state, action) => {
+        state.loading = false;
+        const deletedId = action.payload; // Silinen blogun ID'si
+
+        // Tüm bloglar dizisinden çıkar
+        state.blogs = state.blogs.filter((b) => b._id !== deletedId);
+
+        // Kullanıcının bloglar dizisinden de çıkar
+        state.userBlogs = state.userBlogs.filter((b) => b._id !== deletedId);
+      })
+      .addCase(deleteBlog.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

@@ -23,7 +23,7 @@ const blogAPI = {
       },
     }),
 
-  // **Blog güncelleme** (EKLEDİĞİMİZ KISIM)
+  // Blog güncelleme
   updateBlog: (blogData, token) =>
     axios.post(`${API_URL}/update`, blogData, {
       headers: {
@@ -31,6 +31,19 @@ const blogAPI = {
         Authorization: `Bearer ${token}`,
       },
     }),
+
+  // **Blog silme** (YENİ EKLENDİ)
+  deleteBlog: (blogId, token) =>
+    axios.post(
+      `${API_URL}/delete`,
+      { id: blogId },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    ),
 };
 
 export default blogAPI;

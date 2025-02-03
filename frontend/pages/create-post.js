@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserBlogs } from "@/redux/slices/blogSlice";
+import { fetchUserBlogs, deleteBlog } from "@/redux/slices/blogSlice";
 import Sidebar from "@/components/home/Sidebar";
 import Header from "@/components/home/Header";
 import Modal from "@/components/createPost/Modal";
@@ -17,14 +17,29 @@ export default function CreatePost() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
 
+
   useEffect(() => {
     if (token) {
-      dispatch(fetchUserBlogs(token)); // Kullanıcının kendi bloglarını çek
+      dispatch(fetchUserBlogs(token));
     }
   }, [token, dispatch]);
 
+  
   const toggleMenu = (postId) => {
     setMenuOpen(menuOpen === postId ? null : postId);
+  };
+
+  // DELETE Post fonksiyonu
+  const handleDelete = (blogId) => {
+    if (!token) return;
+    dispatch(deleteBlog({ blogId, token }))
+      .unwrap()
+      .then(() => {
+        console.log("Post deleted successfully.");
+      })
+      .catch((err) => {
+        console.error("Delete error:", err);
+      });
   };
 
   return (
@@ -48,10 +63,10 @@ export default function CreatePost() {
             Create New Post +
           </button>
 
-          {/* My Posts Başlığı */}
+          
           <h2 className="text-gray-900 font-semibold text-lg mb-6">My Posts</h2>
 
-          {/* Error veya Loading */}
+          
           {error && <p className="text-red-500">{error}</p>}
           {loading && <p className="text-gray-500">Loading...</p>}
 
@@ -59,7 +74,7 @@ export default function CreatePost() {
           <div className="space-y-8">
             {userBlogs.map((post) => (
               <div key={post._id} className="relative">
-                {/* More Butonu (Sağ Üst Köşeye Sabitlendi) */}
+                
                 <div className="absolute top-4 right-4">
                   <button
                     onClick={() => toggleMenu(post._id)}
@@ -69,7 +84,10 @@ export default function CreatePost() {
                   </button>
                   {menuOpen === post._id && (
                     <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-lg">
-                      <button className="block px-4 py-2 text-gray-700 bg-white w-full">
+                      <button
+                        onClick={() => handleDelete(post._id)}
+                        className="block px-4 py-2 text-gray-700 bg-white w-full"
+                      >
                         Delete Post
                       </button>
                       <button
@@ -81,6 +99,7 @@ export default function CreatePost() {
                     </div>
                   )}
                 </div>
+                {/* Blog Kartı */}
                 <BlogCard blog={post} />
               </div>
             ))}
@@ -88,10 +107,10 @@ export default function CreatePost() {
         </main>
       </div>
 
-      {/* Post Oluşturma Modal */}
+      {/* Yeni Post Oluşturma Modal */}
       {isModalOpen && <Modal onClose={() => setIsModalOpen(false)} />}
 
-      {/* Düzenleme Modal */}
+      {/* Post Düzenleme Modal */}
       {editingPost && (
         <EditModal post={editingPost} onClose={() => setEditingPost(null)} />
       )}
