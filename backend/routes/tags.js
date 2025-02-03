@@ -7,27 +7,29 @@ const router = express.Router();
 //Yeni Etiket Oluştur 
 router.post("/create", authenticateToken, async (req, res) => {
   try {
-    let { title, content, categories, tags } = req.body;
+    const { name } = req.body;
 
-    //Gelen `tags` verisini ObjectId formatına çevir
-    if (tags && tags.length > 0) {
-      tags = tags.map(tag => new mongoose.Types.ObjectId(tag));
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Tag name is required" });
     }
 
-    const newBlog = new Blog({
-      title,
-      content,
-      author: req.user.id,
-      categories,
-      tags,  //Artık ObjectId olarak kaydediliyor
-    });
+    // Aynı isimde etiket var mı kontrol et
+    let existingTag = await Tag.findOne({ name });
+    if (existingTag) {
+      return res.status(400).json({ success: false, message: "Tag already exists" });
+    }
 
-    await newBlog.save();
-    res.status(201).json({ message: "Blog post created successfully.", blog: newBlog });
+    const newTag = new Tag({ name });
+    await newTag.save();
+
+    res.status(201).json({ success: true, tag: newTag });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Tag creation error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+module.exports = router;
 
 //Etiketleri Listele
 router.post("/list", authenticateToken, async (req, res) => {

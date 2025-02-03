@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addBlog } from "../../redux/slices/blogSlice";
+import { fetchTags, addTagAPI } from "../../api/tagAPI"; // ✅ API fonksiyonlarını ekledik
 import axios from "axios";
 import { FaImages } from "react-icons/fa";
 import { IoReturnUpBackOutline } from "react-icons/io5";
@@ -17,7 +18,7 @@ export default function Modal({ onClose }) {
   const [availableTags, setAvailableTags] = useState([]); 
   const [selectedTags, setSelectedTags] = useState([]); 
   const [newTag, setNewTag] = useState("");
-  const [showTagInput, setShowTagInput] = useState(false); // ✅ Input alanını aç/kapat
+  const [showTagInput, setShowTagInput] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -25,34 +26,34 @@ export default function Modal({ onClose }) {
         .post("http://localhost:5000/api/categories/list", {}, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        .then(response => {
-          setCategories(response.data);
-        })
+        .then(response => setCategories(response.data))
         .catch(error => console.error("Kategorileri alırken hata:", error));
 
-      axios
-        .post("http://localhost:5000/api/tags/list", {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(response => setAvailableTags(response.data))
+      fetchTags(token)
+        .then(setAvailableTags)
         .catch(error => console.error("Etiketleri alırken hata:", error));
     }
   }, [token]);
 
   const toggleCategory = (categoryId) => {
     setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
     );
   };
 
-  const addTag = () => {
+  const addTag = async () => {
     if (newTag.trim() !== "" && !availableTags.some(tag => tag.name === newTag)) {
-      setAvailableTags([...availableTags, { _id: newTag, name: newTag }]);
-      setSelectedTags([...selectedTags, newTag]); 
-      setNewTag("");
-      setShowTagInput(false); // ✅ Input alanını kapat
+      try {
+        const response = await addTagAPI(newTag, token);
+        if (response.success) {
+          setAvailableTags([...availableTags, response.tag]);
+          setSelectedTags([...selectedTags, response.tag._id]);
+          setNewTag("");
+          setShowTagInput(false);
+        }
+      } catch (error) {
+        console.error("Etiket eklenirken hata:", error);
+      }
     }
   };
 
@@ -81,10 +82,7 @@ export default function Modal({ onClose }) {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded-2xl shadow-lg w-[550px] relative">
         <div className="flex items-center text-purple-700 font-semibold text-lg mb-4">
-          <button
-            onClick={onClose}
-            className="mr-2 p-2 bg-white text-black rounded-full transition"
-          >
+          <button onClick={onClose} className="mr-2 p-2 bg-white text-black rounded-full transition">
             <IoReturnUpBackOutline />
           </button>
           <span className="text-primary">Create New Post</span>
