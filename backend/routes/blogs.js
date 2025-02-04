@@ -128,44 +128,34 @@ router.post("/details", async (req, res) => {
 // Blog Beğenme / Beğeni Kaldırma
 router.post("/like", authenticateToken, async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id } = req.body; // 🔥 API'ye gelen 'id' değişkenini al
+    console.log("Beğeni isteği alındı, Blog ID:", id);
 
     const blog = await Blog.findById(id);
-    if (!blog) return res.status(404).json({ message: "Blog post not found." });
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
 
-    const existingLike = await Like.findOne({
-      user: req.user.id,
-      target: id,
-      type: "blog",
-    });
+    const existingLike = await Like.findOne({ user: req.user.id, target: id, type: "blog" });
 
     if (existingLike) {
-      // Beğeni kaldırma işlemi
+      // Eğer zaten beğendiyse, beğeniyi kaldır
       await existingLike.deleteOne();
-      blog.likes = blog.likes.filter(
-        (userId) => userId.toString() !== req.user.id
-      );
+      blog.likes = blog.likes.filter((userId) => userId.toString() !== req.user.id);
       await blog.save();
-      return res.status(200).json({ message: "Blog unliked." });
+      return res.status(200).json({ message: "Blog unliked.", likes: blog.likes });
     }
 
-    // Yeni beğeni ekleme
-    const newLike = new Like({
-      user: req.user.id,
-      target: id,
-      type: "blog",
-    });
+    // Eğer daha önce beğenmemişse yeni beğeni ekle
+    const newLike = new Like({ user: req.user.id, target: id, type: "blog" });
     await newLike.save();
-
-    // Blog dokümanına kullanıcıyı `likes` alanına ekleyelim
     blog.likes.push(req.user.id);
     await blog.save();
 
-    res.status(201).json({ message: "Blog liked." });
+    res.status(201).json({ message: "Blog liked.", likes: blog.likes });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 //Belirli Blogun Beğeni Sayısını Getirme
 router.get("/:blogId/count", async (req, res) => {

@@ -92,6 +92,38 @@ export const deleteBlog = createAsyncThunk(
   }
 );
 
+// Blog beğenme fonksiyonu
+export const toggleBlogLike = createAsyncThunk(
+  "blog/toggleBlogLike",
+  async ({ blogId, token }, { rejectWithValue }) => {
+    try {
+      if (!token) return rejectWithValue("No token found.");
+
+      console.log(`Beğeni API'ye gidiyor: Blog ID -> ${blogId}`);
+
+      const response = await fetch("http://localhost:5000/api/blogs/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: blogId }), // 🔥 API'nin beklediği 'id' olarak gönder!
+      });
+
+      if (!response.ok) {
+        throw new Error("Beğeni güncellenemedi!");
+      }
+
+      const data = await response.json();
+      return { blogId, likes: data.likes };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+
+
 const blogSlice = createSlice({
   name: "blog",
   initialState: {
@@ -218,7 +250,17 @@ const blogSlice = createSlice({
       .addCase(deleteBlog.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+
+    
+      .addCase(toggleBlogLike.fulfilled, (state, action) => {
+        const { blogId, likes } = action.payload;
+        const blogIndex = state.blogs.findIndex((b) => b._id === blogId);
+        if (blogIndex !== -1) {
+          state.blogs[blogIndex].likes = likes;
+        }
+      })
+      
   },
 });
 

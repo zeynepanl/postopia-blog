@@ -53,6 +53,12 @@ const blogAPI = {
         },
       }
     ),
+
+    toggleLike: (blogId, token) =>
+      axios.post(`${API_URL}/blogs/like`, { blogId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+  
 };
 
 export default blogAPI;
