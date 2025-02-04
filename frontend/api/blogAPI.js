@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/blogs"; 
+const API_URL = "http://localhost:5000/api/blogs";
 
 const blogAPI = {
   // Blog ekleme
@@ -20,6 +20,15 @@ const blogAPI = {
     axios.post(`${API_URL}/my-blogs`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
+      },
+    }),
+
+
+  // Tekil Blog Getirme (YENİ EKLENDİ)
+  getBlogDetails: (blogId) =>
+    axios.post(`${API_URL}/details`, { id: blogId }, {
+      headers: {
+        "Content-Type": "application/json",
       },
     }),
 
