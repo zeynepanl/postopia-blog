@@ -74,27 +74,35 @@ router.post("/reply", authenticateToken, async (req, res) => {
 router.post("/like", authenticateToken, async (req, res) => {
   try {
     const { commentId } = req.body;
+    const userId = req.user.id;
 
     const comment = await Comment.findById(commentId);
-    if (!comment)
+    if (!comment) {
       return res.status(404).json({ message: "Comment not found." });
+    }
 
-    const index = comment.likes.indexOf(req.user.id);
+    const index = comment.likes.indexOf(userId);
+
     if (index === -1) {
-      comment.likes.push(req.user.id);
+      // Kullanıcı beğenmemişse beğeni ekle
+      comment.likes.push(userId);
     } else {
+      // Kullanıcı zaten beğenmişse beğeniyi kaldır
       comment.likes.splice(index, 1);
     }
 
     await comment.save();
+
     res.status(200).json({
       message: "Comment like status updated.",
-      likes: comment.likes.length,
+      likes: comment.likes.length, // Beğeni sayısını döndür
+      likedByUser: index === -1, // Kullanıcının yeni durumu
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 //Belirli Yorumun Beğeni Sayısını Getirme
 router.get("/:commentId/count", async (req, res) => {

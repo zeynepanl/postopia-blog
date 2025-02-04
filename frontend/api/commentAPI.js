@@ -22,6 +22,11 @@ const commentAPI = {
             Authorization: `Bearer ${token}`,
           },
         }),
+
+        toggleLike: (commentId, token) =>
+    axios.post(`${API_URL}/like`, { commentId }, {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
 };
 
 export default commentAPI;

@@ -35,6 +35,17 @@ export const fetchComments = createAsyncThunk(
     }
   );
   
+  export const toggleLike = createAsyncThunk(
+    "comment/toggleLike",
+    async ({ commentId, token }, { rejectWithValue }) => {
+      try {
+        const response = await commentAPI.toggleLike(commentId, token);
+        return { commentId, likedByUser: response.data.likedByUser, likes: response.data.likes };
+      } catch (error) {
+        return rejectWithValue(error.response?.data || "Something went wrong");
+      }
+    }
+  );
 
 
   const commentSlice = createSlice({
@@ -71,7 +82,16 @@ export const fetchComments = createAsyncThunk(
         .addCase(fetchComments.rejected, (state, action) => {
           state.loading = false;
           state.error = action.payload;
-        });
+        })
+
+        .addCase(toggleLike.fulfilled, (state, action) => {
+            const { commentId, likedByUser, likes } = action.payload;
+            const comment = state.comments.find((c) => c._id === commentId);
+            if (comment) {
+              comment.likes = likes;
+              comment.likedByUser = likedByUser;
+            }
+          })
     },
   });
   

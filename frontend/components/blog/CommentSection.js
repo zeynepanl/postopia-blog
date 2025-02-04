@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addComment, fetchComments } from "@/redux/slices/commentSlice";
+import { addComment, fetchComments, toggleLike } from "@/redux/slices/commentSlice";
+import { FaHeart } from "react-icons/fa";
 
 export default function CommentSection({ blogId }) {
   const [text, setText] = useState("");
@@ -22,6 +23,10 @@ export default function CommentSection({ blogId }) {
     setText(""); // Yorumu gönderdikten sonra input'u temizle
   };
 
+  const handleLike = (commentId) => {
+    dispatch(toggleLike({ commentId, token }));
+  };
+
   return (
     <div className="mt-8">
       <h3 className="text-xl font-semibold text-gray-800 mb-4">Yorumlar</h3>
@@ -36,12 +41,18 @@ export default function CommentSection({ blogId }) {
       ) : (
         <ul className="space-y-4">
           {comments.map((comment) => (
-            <li key={comment._id} className="border p-2 rounded-md">
-              <p className="text-gray-700">{comment.text}</p>
-              <span className="text-sm text-gray-500">
-                {comment.user?.username ? comment.user.username : "Anonim"} -{" "}
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </span>
+            <li key={comment._id} className="border p-2 rounded-md flex justify-between items-center">
+              <div>
+                <p className="text-gray-700">{comment.text}</p>
+                <span className="text-sm text-gray-500">
+                  {comment.user?.username || "Anonim"} -{" "}
+                  {new Date(comment.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <button onClick={() => handleLike(comment._id)} className="flex items-center gap-1">
+                <FaHeart className={comment.likedByUser ? "text-red-500" : "text-gray-400"} />
+                <span className="text-gray-600">{comment.likes || 0}</span>
+              </button>
             </li>
           ))}
         </ul>
