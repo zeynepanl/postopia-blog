@@ -5,9 +5,10 @@ import { fetchBlogDetails } from "@/redux/slices/blogSlice";
 import Header from "@/components/home/Header";
 import Sidebar from "@/components/home/Sidebar";
 import { FaRegCalendarAlt, FaBookOpen } from "react-icons/fa";
-import CommentSection from "@/components/blog/CommentSection";
 import SimilarPosts from "@/components/blog/SimilarPosts";
 import { blogData } from "@/data/blogs"; 
+import CommentSection from "@/components/blog/CommentSection";
+
 
 export default function BlogDetail() {
   const router = useRouter();
@@ -23,8 +24,17 @@ export default function BlogDetail() {
   }, [id, dispatch]);
 
   if (loading) return <p className="text-gray-500 text-center">Loading...</p>;
-  if (error) return <p className="text-red-500 text-center">{error}</p>;
-  if (!blog) return <p className="text-gray-600 text-xl text-center">Blog not found.</p>;
+
+  if (error) {
+    console.error("Blog detayları yüklenirken hata oluştu:", error);
+    return <p className="text-red-500 text-center">{error.message || "Bir hata oluştu"}</p>;
+  }
+  
+  if (!blog || typeof blog !== "object" || Array.isArray(blog)) {
+    console.error("Geçersiz blog nesnesi:", blog);
+    return <p className="text-gray-600 text-xl text-center">Blog not found.</p>;
+  }
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -75,7 +85,8 @@ export default function BlogDetail() {
 
           <p className="text-gray-700 text-xl mt-6 leading-relaxed">{blog.content}</p>
 
-          <CommentSection />
+          <CommentSection blogId={blog._id} />
+
           {/* Benzer Postlar */}
           <SimilarPosts currentBlog={blog} blogs={blogData} />
         </main>
