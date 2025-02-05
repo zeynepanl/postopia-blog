@@ -21,20 +21,24 @@ export const addComment = createAsyncThunk(
 );
 
 export const fetchComments = createAsyncThunk(
-    "comment/fetchComments",
-    async ({ blogId, token }, { rejectWithValue }) => {
-      try {
-        if (!token) {
-          return rejectWithValue("No token found.");
-        }
-        const response = await commentAPI.getComments(blogId, token);
-        return response.data; // Yorumları döndür
-      } catch (error) {
-        return rejectWithValue(error.response?.data || "Something went wrong");
+  "comment/fetchComments",
+  async ({ blogId, token }, { rejectWithValue }) => {
+    try {
+      if (!token) {
+        return rejectWithValue("No token found.");
       }
+      const response = await commentAPI.getComments(blogId, token);
+      return response.data.map(comment => ({
+        ...comment,
+        replies: comment.replies?.filter(Boolean) || [] // Yanıtları undefined olmaktan koru
+      }));
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Something went wrong");
     }
-  );
-  
+  }
+);
+
+
   export const toggleLike = createAsyncThunk(
     "comment/toggleLike",
     async ({ commentId, token }, { rejectWithValue }) => {

@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addComment, fetchComments, replyToComment } from "@/redux/slices/commentSlice";
+import {
+  addComment,
+  fetchComments,
+  replyToComment,
+} from "@/redux/slices/commentSlice";
 
 export default function CommentSection({ blogId }) {
   const [text, setText] = useState("");
@@ -8,7 +12,11 @@ export default function CommentSection({ blogId }) {
   const [replyingTo, setReplyingTo] = useState(null); // Hangi yoruma yanıt verildiğini takip et
 
   const dispatch = useDispatch();
-  const { comments = [], loading, error } = useSelector((state) => state.comment);
+  const {
+    comments = [],
+    loading,
+    error,
+  } = useSelector((state) => state.comment);
   const { token } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -44,7 +52,9 @@ export default function CommentSection({ blogId }) {
       {loading ? (
         <p>Yükleniyor...</p>
       ) : error ? (
-        <p className="text-red-500">{error.message || "Yorumlar yüklenirken hata oluştu."}</p>
+        <p className="text-red-500">
+          {error.message || "Yorumlar yüklenirken hata oluştu."}
+        </p>
       ) : !comments || comments.length === 0 ? (
         <p className="text-gray-500">Henüz yorum yok.</p>
       ) : (
@@ -52,27 +62,31 @@ export default function CommentSection({ blogId }) {
           {comments.map((comment) => (
             <li key={comment?._id} className="border p-2 rounded-md">
               <div>
-                <p className="text-gray-700">{comment?.text || "Yorum içeriği mevcut değil"}</p>
+                <p className="text-gray-700">
+                  {comment?.text || "Yorum içeriği mevcut değil"}
+                </p>
                 <span className="text-sm text-gray-500">
                   {comment?.user?.username || "Anonim"} -{" "}
-                  {comment?.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "Bilinmeyen tarih"}
+                  {comment?.createdAt
+                    ? new Date(comment.createdAt).toLocaleDateString()
+                    : "Bilinmeyen tarih"}
                 </span>
               </div>
 
               {/* 📌 **Yanıtları Listeleme** */}
-              {comment.replies && comment.replies.length > 0 && (
-                <ul className="ml-4 border-l-2 pl-4 mt-2">
-                  {comment.replies.map((reply) => (
-                    <li key={reply._id} className="text-sm text-gray-600 p-2">
-                      <p>{reply.text}</p>
-                      <span className="text-xs text-gray-500">
-                        {reply?.user?.username || "Anonim"} -{" "}
-                        {reply?.createdAt ? new Date(reply.createdAt).toLocaleDateString() : "Bilinmeyen tarih"}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {comment.replies &&
+                Array.isArray(comment.replies) &&
+                comment.replies.filter(Boolean).map((reply) => (
+                  <li key={reply?._id} className="text-sm text-gray-600 p-2">
+                    <p>{reply?.text || "Yanıt içeriği bulunamadı"}</p>
+                    <span className="text-xs text-gray-500">
+                      {reply?.user?.username || "Anonim"} -{" "}
+                      {reply?.createdAt
+                        ? new Date(reply.createdAt).toLocaleDateString()
+                        : "Bilinmeyen tarih"}
+                    </span>
+                  </li>
+                ))}
 
               {/* 📌 **Yanıt Ekleme Butonu** */}
               <button
@@ -84,7 +98,10 @@ export default function CommentSection({ blogId }) {
 
               {/* 📌 **Yanıt Ekleme Formu** */}
               {replyingTo === comment._id && (
-                <form onSubmit={(e) => handleReplySubmit(e, comment._id)} className="mt-2 ml-4">
+                <form
+                  onSubmit={(e) => handleReplySubmit(e, comment._id)}
+                  className="mt-2 ml-4"
+                >
                   <textarea
                     className="border p-2 rounded-md w-full text-sm"
                     rows="2"

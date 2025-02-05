@@ -53,7 +53,6 @@ router.post("/add", authenticateToken, async (req, res) => {
 });
 
 //Yoruma Yanıt Ekleme
-// Yoruma Yanıt Ekleme
 router.post("/reply", authenticateToken, async (req, res) => {
   try {
     const { commentId, text } = req.body;
@@ -64,27 +63,31 @@ router.post("/reply", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Comment not found." });
     }
 
-    // Yeni yanıt objesi oluştur
+    // Yeni yanıt objesi
     const newReply = {
       user: userId,
       text: text,
       createdAt: new Date(),
     };
 
-    // Yoruma yanıtı ekle
+    // Yanıtı yorumun içine ekle
     comment.replies.push(newReply);
     await comment.save();
 
-    res.status(201).json({ 
-      message: "Reply added successfully.", 
-      reply: newReply, 
-      commentId: comment._id 
+    // Yorumları tekrar çek ve kullanıcının bilgisiyle döndür
+    const updatedComment = await Comment.findById(commentId)
+      .populate("replies.user", "username email");
+
+    res.status(201).json({
+      message: "Reply added successfully.",
+      comment: updatedComment,
     });
 
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 //Yorumu Beğenme/Beğeni Kaldırma
@@ -161,9 +164,9 @@ router.get("/:blogId", authenticateToken, async (req, res) => {
   try {
     const { blogId } = req.params;
 
-    // 🔥 `populate("user")` ekleyerek kullanıcı bilgilerini çek
     const comments = await Comment.find({ blog: blogId })
-      .populate("user", "username email") // Kullanıcı adı ve e-posta bilgisini ekle
+      .populate("user", "username email")
+      .populate("replies.user", "username email") // Yanıtlar içindeki kullanıcıları çek
       .sort({ createdAt: -1 });
 
     if (!comments || comments.length === 0) {
