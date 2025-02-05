@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchBlogDetails } from "@/redux/slices/blogSlice";
+import { fetchBlogDetails, fetchBlogs } from "@/redux/slices/blogSlice"; // fetchBlogs eklediğinizi varsayıyoruz
 import Header from "@/components/home/Header";
 import Sidebar from "@/components/home/Sidebar";
 import { FaRegCalendarAlt, FaBookOpen } from "react-icons/fa";
-import SimilarPosts from "@/components/blog/SimilarPosts";
-import { blogData } from "@/data/blogs";
 import CommentSection from "@/components/blog/CommentSection";
+import SimilarPosts from "@/components/blog/SimilarPosts";
 
 export default function BlogDetail() {
   const router = useRouter();
@@ -33,6 +32,9 @@ export default function BlogDetail() {
     console.error("Geçersiz blog nesnesi:", blog);
     return <p className="text-gray-600 text-xl text-center">Blog not found.</p>;
   }
+
+  // Eğer blog.image varsa ve sunucudan gelen relative path içeriyorsa, base URL ekleyerek tam URL oluşturuyoruz.
+  const imageUrl = blog.image ? `http://localhost:5000${blog.image}` : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,20 +75,26 @@ export default function BlogDetail() {
             </div>
             <div className="flex items-center gap-1">
               <FaBookOpen className="text-lg" />
-              <span>{blog.readTime} Mins Read</span>
+              <span>{blog.readTime ? `${blog.readTime} Mins Read` : "N/A"}</span>
             </div>
           </div>
 
-          {blog.image && (
-            <img src={blog.image} alt="Blog Image" className="rounded-xl mt-6 mx-auto w-full" />
+          {/* Blog görseli varsa, tam URL ile gösteriyoruz */}
+          {imageUrl && (
+            <img 
+              src={imageUrl} 
+              alt="Blog Image" 
+              className="rounded-xl mt-6 mx-auto w-full" 
+            />
           )}
 
           <p className="text-gray-700 text-xl mt-6 leading-relaxed">{blog.content}</p>
 
-          {/* 📌 Eğer comments eksikse boş array olarak geçiriyoruz */}
+          {/* Yorum bölümü */}
           <CommentSection blogId={blog._id} comments={blog.comments || []} />
 
-          <SimilarPosts currentBlog={blog} blogs={blogData} />
+          {/* Yorum alanından sonra benzer postlar */}
+          <SimilarPosts currentBlog={blog} />
         </main>
       </div>
     </div>

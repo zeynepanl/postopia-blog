@@ -5,8 +5,7 @@ const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-//Yorum Ekleme
-// Yorum ekleme işlemini düzelt
+// Yorum ekleme
 router.post("/add", authenticateToken, async (req, res) => {
   try {
     const { blogId, text } = req.body;
@@ -56,15 +55,33 @@ router.post("/add", authenticateToken, async (req, res) => {
 router.post("/reply", authenticateToken, async (req, res) => {
   try {
     const { commentId, text } = req.body;
+    const userId = req.user.id;
 
     const comment = await Comment.findById(commentId);
-    if (!comment)
+    if (!comment) {
       return res.status(404).json({ message: "Comment not found." });
+    }
 
-    comment.replies.push({ user: req.user.id, text });
+    // Yeni yanıt objesi
+    const newReply = {
+      user: userId,
+      text: text,
+      createdAt: new Date(),
+    };
+
+    // Yanıtı yorumun içine ekle
+    comment.replies.push(newReply);
     await comment.save();
 
-    res.status(201).json({ message: "Reply added successfully.", comment });
+    // Yorumları tekrar çek ve kullanıcının bilgisiyle döndür
+    const updatedComment = await Comment.findById(commentId)
+      .populate("replies.user", "username email");
+
+    res.status(201).json({
+      message: "Reply added successfully.",
+      comment: updatedComment,
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -117,36 +134,82 @@ router.get("/:commentId/count", async (req, res) => {
   }
 });
 
-//Yorumu Silme (Yalnızca Yorum Sahibi veya Admin)
-router.post("/delete", authenticateToken, async (req, res) => {
+
+// Yorumu Silme
+router.delete("/delete/:commentId", authenticateToken, async (req, res) => {
   try {
-    const { commentId } = req.body;
+    const { commentId } = req.params;
 
     const comment = await Comment.findById(commentId);
-    if (!comment)
+    if (!comment) {
       return res.status(404).json({ message: "Comment not found." });
+    }
 
     if (comment.user.toString() !== req.user.id && req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized to delete this comment." });
+      return res.status(403).json({ message: "Unauthorized to delete this comment." });
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      comment.blog,
+      { $pull: { comments: { _id: commentId } } },
+      { new: true }
+    );
+
+    if (!updatedBlog) {
+      throw new Error("Failed to update Blog, comment not removed.");
     }
 
     await comment.deleteOne();
-    res.status(200).json({ message: "Comment deleted successfully." });
+
+    res.status(200).json({ message: "Comment deleted successfully.", blog: updatedBlog });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
+// Yorumu Güncelleme
+router.put("/update", authenticateToken, async (req, res) => {
+  try {
+    const { commentId, text } = req.body;
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    if (comment.user.toString() !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized to update this comment." });
+    }
+
+    comment.text = text;
+    await comment.save();
+
+    const updatedBlog = await Blog.findOneAndUpdate(
+      { _id: comment.blog, "comments._id": commentId },
+      { $set: { "comments.$.text": text } },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Comment updated successfully.", comment, blog: updatedBlog });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 //Belli Bir Bloga Ait Yorumları Getirme
 router.get("/:blogId", authenticateToken, async (req, res) => {
   try {
     const { blogId } = req.params;
 
-    // 🔥 `populate("user")` ekleyerek kullanıcı bilgilerini çek
     const comments = await Comment.find({ blog: blogId })
-      .populate("user", "username email") // Kullanıcı adı ve e-posta bilgisini ekle
+      .populate("user", "username email")
+      .populate("replies.user", "username email") // Yanıtlar içindeki kullanıcıları çek
       .sort({ createdAt: -1 });
 
     if (!comments || comments.length === 0) {

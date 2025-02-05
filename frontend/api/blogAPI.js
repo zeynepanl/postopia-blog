@@ -1,5 +1,3 @@
-
-
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/blogs";
@@ -9,8 +7,8 @@ const blogAPI = {
   createBlog: (blogData, token) =>
     axios.post(`${API_URL}/create`, blogData, {
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
     }),
 

@@ -9,13 +9,37 @@ export const addBlog = createAsyncThunk(
   async ({ blogData, token }, { rejectWithValue }) => {
     try {
       if (!token) {
-        return rejectWithValue("No token found.");
+        return rejectWithValue("Token bulunamadı.");
       }
-      console.log("Gönderilen Blog Verisi:", blogData);
-      const response = await blogAPI.createBlog(blogData, token);
-      return response.data; // Backend'den gelen { message, blog } yapısı
+
+      // Debug için request detaylarını logla
+      console.log("Request Headers:", {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      });
+
+      const response = await axios.post(
+        "http://localhost:5000/api/blogs/create",
+        blogData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      console.log("API Response:", response.data);
+      return response.data;
+
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Something went wrong");
+      console.error("API Error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        "Blog oluşturulurken bir hata oluştu"
+      );
     }
   }
 );
