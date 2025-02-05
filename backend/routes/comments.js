@@ -5,8 +5,7 @@ const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-//Yorum Ekleme
-// Yorum ekleme işlemini düzelt
+// Yorum ekleme
 router.post("/add", authenticateToken, async (req, res) => {
   try {
     const { blogId, text } = req.body;
@@ -88,8 +87,6 @@ router.post("/reply", authenticateToken, async (req, res) => {
   }
 });
 
-
-
 //Yorumu Beğenme/Beğeni Kaldırma
 router.post("/like", authenticateToken, async (req, res) => {
   try {
@@ -137,27 +134,73 @@ router.get("/:commentId/count", async (req, res) => {
   }
 });
 
-//Yorumu Silme (Yalnızca Yorum Sahibi veya Admin)
-router.post("/delete", authenticateToken, async (req, res) => {
+
+// Yorumu Silme
+router.delete("/delete/:commentId", authenticateToken, async (req, res) => {
   try {
-    const { commentId } = req.body;
+    const { commentId } = req.params;
 
     const comment = await Comment.findById(commentId);
-    if (!comment)
+    if (!comment) {
       return res.status(404).json({ message: "Comment not found." });
+    }
 
     if (comment.user.toString() !== req.user.id && req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized to delete this comment." });
+      return res.status(403).json({ message: "Unauthorized to delete this comment." });
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      comment.blog,
+      { $pull: { comments: { _id: commentId } } },
+      { new: true }
+    );
+
+    if (!updatedBlog) {
+      throw new Error("Failed to update Blog, comment not removed.");
     }
 
     await comment.deleteOne();
-    res.status(200).json({ message: "Comment deleted successfully." });
+
+    res.status(200).json({ message: "Comment deleted successfully.", blog: updatedBlog });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
+// Yorumu Güncelleme
+router.put("/update", authenticateToken, async (req, res) => {
+  try {
+    const { commentId, text } = req.body;
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    if (comment.user.toString() !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized to update this comment." });
+    }
+
+    comment.text = text;
+    await comment.save();
+
+    const updatedBlog = await Blog.findOneAndUpdate(
+      { _id: comment.blog, "comments._id": commentId },
+      { $set: { "comments.$.text": text } },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Comment updated successfully.", comment, blog: updatedBlog });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 //Belli Bir Bloga Ait Yorumları Getirme
 router.get("/:blogId", authenticateToken, async (req, res) => {
