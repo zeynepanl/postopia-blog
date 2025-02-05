@@ -27,6 +27,15 @@ const commentAPI = {
     axios.post(`${API_URL}/like`, { commentId }, {
       headers: { Authorization: `Bearer ${token}` }
     }),
+
+    replyToComment: (commentId, text, token) =>
+      axios.post(`${API_URL}/reply`, { commentId, text }, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    
 };
 
 export default commentAPI;

@@ -53,22 +53,39 @@ router.post("/add", authenticateToken, async (req, res) => {
 });
 
 //Yoruma Yanıt Ekleme
+// Yoruma Yanıt Ekleme
 router.post("/reply", authenticateToken, async (req, res) => {
   try {
     const { commentId, text } = req.body;
+    const userId = req.user.id;
 
     const comment = await Comment.findById(commentId);
-    if (!comment)
+    if (!comment) {
       return res.status(404).json({ message: "Comment not found." });
+    }
 
-    comment.replies.push({ user: req.user.id, text });
+    // Yeni yanıt objesi oluştur
+    const newReply = {
+      user: userId,
+      text: text,
+      createdAt: new Date(),
+    };
+
+    // Yoruma yanıtı ekle
+    comment.replies.push(newReply);
     await comment.save();
 
-    res.status(201).json({ message: "Reply added successfully.", comment });
+    res.status(201).json({ 
+      message: "Reply added successfully.", 
+      reply: newReply, 
+      commentId: comment._id 
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 //Yorumu Beğenme/Beğeni Kaldırma
 router.post("/like", authenticateToken, async (req, res) => {
