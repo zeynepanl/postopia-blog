@@ -1,3 +1,7 @@
+
+
+
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import blogAPI from "../../api/blogAPI";
 
@@ -12,6 +16,18 @@ export const addBlog = createAsyncThunk(
       console.log("Gönderilen Blog Verisi:", blogData);
       const response = await blogAPI.createBlog(blogData, token);
       return response.data; // Backend'den gelen { message, blog } yapısı
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
+export const fetchLatestBlogs = createAsyncThunk(
+  "blog/fetchLatestBlogs",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.getLatestBlogs();
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
@@ -123,12 +139,30 @@ export const toggleBlogLike = createAsyncThunk(
 );
 
 
+export const fetchPopularBlogs = createAsyncThunk(
+  "blog/fetchPopularBlogs",
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log("Redux: Popular blog API çağrılıyor...");
+      const response = await blogAPI.getPopularBlogs();
+      console.log("Redux: Gelen veriler", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Redux Hatası:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
+
 
 const blogSlice = createSlice({
   name: "blog",
   initialState: {
     blogs: [],        // Tüm bloglar
-    userBlogs: [],    // Kullanıcının kendi blogları
+    userBlogs: [],  
+    latestBlogs: [],
+    popularBlogs: [],  // Kullanıcının kendi blogları
     selectedBlog: null, // Seçili blogun detayları
     loading: false,
     error: null,
@@ -260,8 +294,36 @@ const blogSlice = createSlice({
           state.blogs[blogIndex].likes = likes;
         }
       })
+
+      .addCase(fetchLatestBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchLatestBlogs.fulfilled, (state, action) => {
+        state.latestBlogs = action.payload; 
+        state.loading = false;
+      })
+      .addCase(fetchLatestBlogs.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+
+      .addCase(fetchPopularBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchPopularBlogs.fulfilled, (state, action) => {
+        state.popularBlogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchPopularBlogs.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      });
       
   },
 });
 
 export default blogSlice.reducer;
+
+
+
+

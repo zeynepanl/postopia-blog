@@ -6,7 +6,7 @@ import { FaHeart } from "react-icons/fa";
 export default function CommentSection({ blogId }) {
   const [text, setText] = useState("");
   const dispatch = useDispatch();
-  const { comments, loading, error } = useSelector((state) => state.comment);
+  const { comments = [], loading, error } = useSelector((state) => state.comment);
   const { token } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -35,23 +35,23 @@ export default function CommentSection({ blogId }) {
       {loading ? (
         <p>Yükleniyor...</p>
       ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : comments.length === 0 ? (
+        <p className="text-red-500">{error.message || "Yorumlar yüklenirken hata oluştu."}</p>
+      ) : !comments || comments.length === 0 ? (
         <p className="text-gray-500">Henüz yorum yok.</p>
       ) : (
         <ul className="space-y-4">
           {comments.map((comment) => (
-            <li key={comment._id} className="border p-2 rounded-md flex justify-between items-center">
+            <li key={comment?._id} className="border p-2 rounded-md flex justify-between items-center">
               <div>
-                <p className="text-gray-700">{comment.text}</p>
+                <p className="text-gray-700">{comment?.text || "Yorum içeriği mevcut değil"}</p>
                 <span className="text-sm text-gray-500">
-                  {comment.user?.username || "Anonim"} -{" "}
-                  {new Date(comment.createdAt).toLocaleDateString()}
+                  {comment?.user?.username || "Anonim"} -{" "}
+                  {comment?.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "Bilinmeyen tarih"}
                 </span>
               </div>
-              <button onClick={() => handleLike(comment._id)} className="flex items-center gap-1">
-                <FaHeart className={comment.likedByUser ? "text-red-500" : "text-gray-400"} />
-                <span className="text-gray-600">{comment.likes || 0}</span>
+              <button onClick={() => handleLike(comment?._id)} className="flex items-center gap-1">
+                <FaHeart className={comment?.likedByUser ? "text-red-500" : "text-gray-400"} />
+                <span className="text-gray-600">{comment?.likes || 0}</span>
               </button>
             </li>
           ))}

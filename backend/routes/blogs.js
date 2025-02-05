@@ -1,3 +1,6 @@
+
+
+
 const express = require("express");
 const mongoose = require("mongoose");
 const Blog = require("../db/models/Blog");
@@ -103,6 +106,84 @@ router.post("/list", authenticateToken, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.get("/latest", async (req, res) => {
+  try {
+    const blogs = await Blog.find()
+      .sort({ createdAt: -1 }) 
+      .limit(10) 
+      .populate("author", "username email")
+      .populate("categories", "name")
+      .populate("tags", "name");
+
+    res.status(200).json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get("/popular", async (req, res) => {
+  try {
+    console.log("Popüler bloglar API çağrıldı!");
+
+    const blogs = await Blog.aggregate([
+      {
+        $addFields: {
+          likesCount: { $size: "$likes" },
+          commentsCount: { $size: "$comments" }, 
+          score: {
+            $add: [
+              { $multiply: [{ $size: "$likes" }, 2] }, 
+              { $size: "$comments" } 
+            ]
+          }
+        }
+      },
+      {
+        $sort: { score: -1 } 
+      },
+      {
+        $limit: 10 
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author"
+        }
+      },
+      {
+        $unwind: "$author"
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "categories"
+        }
+      },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "tags",
+          foreignField: "_id",
+          as: "tags"
+        }
+      }
+    ]);
+
+    console.log("Gönderilen popüler bloglar:", blogs);
+    res.status(200).json(blogs);
+  } catch (error) {
+    console.error("Popüler bloglar çekilirken hata:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 //Tekil Blog Yazısını Getirme (POST)
 router.post("/details", async (req, res) => {
@@ -233,3 +314,4 @@ router.post("/my-blogs", authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+

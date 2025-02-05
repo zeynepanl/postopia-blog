@@ -1,13 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchLatestBlogs, fetchPopularBlogs } from "@/redux/slices/blogSlice"; 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BlogCard from "./BlogCard";
 import CategoryList from "./CategoryList";
 import Tags from "./Tags";
-import { blogData } from "@/data/blogs"; // Blog verilerini içeri aktar
+import { useRouter } from "next/router";
 
 export default function HomeContent() {
-  const [activeTab, setActiveTab] = useState("Latest");
+  const [activeTab, setActiveTab] = useState("Latest"); 
+  const dispatch = useDispatch();
+  const { latestBlogs, popularBlogs, loading } = useSelector((state) => state.blog);
+
+  // Sekmeye göre API çağrısı yap
+  useEffect(() => {
+    if (activeTab === "Latest") {
+      dispatch(fetchLatestBlogs());
+    } else if (activeTab === "Popular") {
+      dispatch(fetchPopularBlogs());
+    }
+  }, [activeTab, dispatch]);
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden">
@@ -17,7 +30,7 @@ export default function HomeContent() {
       </div>
 
       {/* Header'in altında sekmeler */}
-      <div className="pt-20 flex justify-center ">
+      <div className="pt-20 flex justify-center">
         <div className="flex items-center gap-12">
           {["Latest", "Popular"].map((tab) => (
             <div key={tab} className="relative cursor-pointer">
@@ -29,7 +42,6 @@ export default function HomeContent() {
               >
                 {tab}
               </span>
-
               {/* Alt Çizgiler (Seçildiğinde Gözüken Çift Çizgi) */}
               {activeTab === tab && (
                 <div className="absolute left-0 w-full mt-2">
@@ -49,11 +61,17 @@ export default function HomeContent() {
 
         {/* Ana İçerik Alanı */}
         <main className="flex-1 mx-auto max-w-6xl ml-64 mr-80">
-          <div className="space-y-6">
-            {blogData.map((blog) => (
-              <BlogCard key={blog.id} blog={blog} />
-            ))}
-          </div>
+          {/* Yükleme İşlemi */}
+          {loading ? (
+            <p className="text-center text-gray-600">Loading...</p>
+          ) : (
+            <div className="space-y-6">
+              {/* Eğer "Latest" sekmesi seçiliyse Redux'tan gelen en son blogları göster */}
+              {activeTab === "Latest"
+                ? latestBlogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)
+                : popularBlogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)}
+            </div>
+          )}
         </main>
 
         {/* Sabit Sağ Sidebar */}
