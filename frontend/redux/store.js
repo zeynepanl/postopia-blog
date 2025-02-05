@@ -4,6 +4,8 @@ import blogReducer from "./slices/blogSlice";
 import commentReducer from "./slices/commentSlice";
 import category from "./slices/categorySlice";
 import tagReducer from "./slices/tagSlice"; 
+import usersReducer from "./slices/usersSlice";
+
 
 const store = configureStore({
   reducer: {
@@ -12,6 +14,7 @@ const store = configureStore({
     comment: commentReducer,
     category: category,
     tag: tagReducer,
+    users: usersReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
