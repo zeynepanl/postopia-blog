@@ -6,21 +6,37 @@ import Header from "./Header";
 import BlogCard from "./BlogCard";
 import CategoryList from "./CategoryList";
 import Tags from "./Tags";
-import { useRouter } from "next/router";
 
 export default function HomeContent() {
   const [activeTab, setActiveTab] = useState("Latest"); 
   const dispatch = useDispatch();
-  const { latestBlogs, popularBlogs, loading } = useSelector((state) => state.blog);
+  
+  // Redux store'dan verileri çekiyoruz
+  const { latestBlogs, popularBlogs, blogs, selectedCategories, selectedTags, loading } = useSelector((state) => state.blog);
+
+  // Eğer kategori seçildiyse sadece filtrelenen blogları göster
+  const displayedBlogs =
+  selectedCategories.length > 0
+    ? blogs
+    : selectedTags.length > 0
+    ? blogs
+    : activeTab === "Latest"
+    ? latestBlogs
+    : popularBlogs;
+// Eğer Popular sekmesi seçildiyse popüler blogları göster
 
   // Sekmeye göre API çağrısı yap
   useEffect(() => {
+    if (selectedCategories.length > 0) {
+      return; // Eğer kategori seçilmişse, latest ve popular çağrılmasın
+    }
+    
     if (activeTab === "Latest") {
       dispatch(fetchLatestBlogs());
     } else if (activeTab === "Popular") {
       dispatch(fetchPopularBlogs());
     }
-  }, [activeTab, dispatch]);
+  }, [activeTab, selectedCategories, dispatch]);
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden">
@@ -66,10 +82,11 @@ export default function HomeContent() {
             <p className="text-center text-gray-600">Loading...</p>
           ) : (
             <div className="space-y-6">
-              {/* Eğer "Latest" sekmesi seçiliyse Redux'tan gelen en son blogları göster */}
-              {activeTab === "Latest"
-                ? latestBlogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)
-                : popularBlogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)}
+              {displayedBlogs.length > 0 ? (
+                displayedBlogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)
+              ) : (
+                <p className="text-center text-gray-600">No blogs found.</p>
+              )}
             </div>
           )}
         </main>

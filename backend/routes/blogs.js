@@ -1,6 +1,4 @@
 
-
-
 const express = require("express");
 const mongoose = require("mongoose");
 const Blog = require("../db/models/Blog");
@@ -111,7 +109,7 @@ router.get("/latest", async (req, res) => {
   try {
     const blogs = await Blog.find()
       .sort({ createdAt: -1 }) 
-      .limit(10) 
+      .limit(20)
       .populate("author", "username email")
       .populate("categories", "name")
       .populate("tags", "name");
@@ -251,10 +249,9 @@ router.get("/:blogId/count", async (req, res) => {
   }
 });
 
-//Blog Yazılarını Arama ve Filtreleme (POST)
-router.post("/search", async (req, res) => {
+router.get("/search", async (req, res) => {
   try {
-    const { title, author, categories, tags, startDate, endDate } = req.body;
+    const { title, author, categories, tags, startDate, endDate } = req.query;
     let filter = {};
 
     if (title) filter.title = { $regex: title, $options: "i" };
@@ -264,16 +261,21 @@ router.post("/search", async (req, res) => {
     }
 
     if (categories) {
+      console.log("Gelen Categories (String):", categories); 
+      const categoryNames = categories.split(","); // String'i diziye çevir
+      console.log("Diziye Çevrilen Categories:", categoryNames);
+
       const categoryIds = await Category.find({
-        name: { $in: categories },
+        name: { $in: categoryNames },
       }).select("_id");
+      
       filter.categories = { $in: categoryIds.map((cat) => cat._id) };
+      console.log("Filtrelenen Kategori ID'leri:", filter.categories);
     }
 
-    if (tags && tags.length > 0) {
-      const tagIds = await Tag.find({
-        name: { $in: tags },
-      }).select("_id");
+    if (tags) {
+      const tagNames = tags.split(",");
+      const tagIds = await Tag.find({ name: { $in: tagNames } }).select("_id");
       filter.tags = { $in: tagIds.map((tag) => tag._id) };
     }
 
@@ -281,21 +283,26 @@ router.post("/search", async (req, res) => {
       filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
 
+    console.log("Son Filtreleme:", filter); 
+    
     const blogs = await Blog.find(filter)
       .populate("author", "username email")
       .populate("categories", "name")
       .populate("tags", "name");
 
-    if (blogs.length === 0)
-      return res
-        .status(404)
-        .json({ message: "No blog posts found with the given criteria." });
+    console.log("Filtrelenmiş Bloglar:", blogs); 
+
+    if (blogs.length === 0) {
+      return res.status(404).json({ message: "No blog posts found with the given criteria." });
+    }
 
     res.status(200).json(blogs);
   } catch (error) {
+    console.error("Kategoriye Göre Blog Getirme Hatası:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Kullanıcının kendi bloglarını listeleme (POST)
 router.post("/my-blogs", authenticateToken, async (req, res) => {

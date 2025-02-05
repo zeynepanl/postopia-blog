@@ -32,7 +32,7 @@ router.post("/create", authenticateToken, async (req, res) => {
 module.exports = router;
 
 //Etiketleri Listele
-router.post("/list", authenticateToken, async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const tags = await Tag.find();
     res.status(200).json(tags);

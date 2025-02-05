@@ -1,9 +1,7 @@
-
-
-
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import blogAPI from "../../api/blogAPI";
+import axios from "axios";
+
 
 // Blog Ekleme
 export const addBlog = createAsyncThunk(
@@ -154,20 +152,67 @@ export const fetchPopularBlogs = createAsyncThunk(
   }
 );
 
+export const fetchBlogsByCategory = createAsyncThunk(
+  "blog/fetchBlogsByCategory",
+  async ({ categories }, { rejectWithValue }) => {
+    try {
+      console.log("Gönderilen Kategoriler:", categories); 
+      const response = await axios.get("http://localhost:5000/api/blogs/search", {
+        params: { categories: categories.join(",") }, 
+      });
+      console.log("Gelen Bloglar:", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Bloglar yüklenemedi");
+    }
+  }
+);
+
+
+export const fetchBlogsByTags = createAsyncThunk(
+  "blog/fetchBlogsByTags",
+  async ({ tags }, { rejectWithValue }) => {
+    try {
+      console.log("Gönderilen Etiketler:", tags);
+      const response = await axios.get("http://localhost:5000/api/blogs/search", {
+        params: { tags: tags.join(",") }, // 🔥 API'ye tags'i string olarak gönderiyoruz
+      });
+      console.log("Gelen Bloglar:", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Bloglar yüklenemedi");
+    }
+  }
+);
+
 
 
 const blogSlice = createSlice({
   name: "blog",
   initialState: {
-    blogs: [],        // Tüm bloglar
+    blogs: [],        
     userBlogs: [],  
     latestBlogs: [],
-    popularBlogs: [],  // Kullanıcının kendi blogları
-    selectedBlog: null, // Seçili blogun detayları
+    popularBlogs: [], 
+    selectedCategories: [],
+    selectedTags: [],
+    selectedBlog: null, 
+    selectedBlog: null,
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    setSelectedCategories: (state, action) => {
+      state.selectedCategories = action.payload || [];
+  },
+
+  setSelectedTags: (state, action) => {
+    state.selectedTags = action.payload || [];
+  },
+
+
+  },
+
   extraReducers: (builder) => {
     builder
       // addBlog
@@ -317,11 +362,37 @@ const blogSlice = createSlice({
       .addCase(fetchPopularBlogs.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
+      })
+
+      .addCase(fetchBlogsByCategory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchBlogsByCategory.fulfilled, (state, action) => {
+        state.blogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchBlogsByCategory.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+
+      .addCase(fetchBlogsByTags.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchBlogsByTags.fulfilled, (state, action) => {
+        state.blogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchBlogsByTags.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
       });
-      
+
+     
   },
 });
 
+export const { setSelectedCategories,setSelectedTags } = blogSlice.actions;
 export default blogSlice.reducer;
 
 

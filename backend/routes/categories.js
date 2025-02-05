@@ -22,7 +22,7 @@ router.post("/create", authenticateToken, isAdmin, async (req, res) => {
 });
 
 //Kategorileri Listele
-router.post("/list", authenticateToken, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const categories = await Category.find();
     res.status(200).json(categories);
