@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import blogAPI from "../../api/blogAPI";
+import axios from "axios";
+
 
 // Blog Ekleme
 export const addBlog = createAsyncThunk(
@@ -12,6 +14,18 @@ export const addBlog = createAsyncThunk(
       console.log("Gönderilen Blog Verisi:", blogData);
       const response = await blogAPI.createBlog(blogData, token);
       return response.data; // Backend'den gelen { message, blog } yapısı
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
+export const fetchLatestBlogs = createAsyncThunk(
+  "blog/fetchLatestBlogs",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.getLatestBlogs();
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
@@ -92,16 +106,134 @@ export const deleteBlog = createAsyncThunk(
   }
 );
 
+// Blog beğenme fonksiyonu
+export const toggleBlogLike = createAsyncThunk(
+  "blog/toggleBlogLike",
+  async ({ blogId, token }, { rejectWithValue }) => {
+    try {
+      if (!token) return rejectWithValue("No token found.");
+
+      console.log(`Beğeni API'ye gidiyor: Blog ID -> ${blogId}`);
+
+      const response = await fetch("http://localhost:5000/api/blogs/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: blogId }), // 🔥 API'nin beklediği 'id' olarak gönder!
+      });
+
+      if (!response.ok) {
+        throw new Error("Beğeni güncellenemedi!");
+      }
+
+      const data = await response.json();
+      return { blogId, likes: data.likes };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+
+export const fetchPopularBlogs = createAsyncThunk(
+  "blog/fetchPopularBlogs",
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log("Redux: Popular blog API çağrılıyor...");
+      const response = await blogAPI.getPopularBlogs();
+      console.log("Redux: Gelen veriler", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Redux Hatası:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
+export const fetchBlogsByCategory = createAsyncThunk(
+  "blog/fetchBlogsByCategory",
+  async ({ categories }, { rejectWithValue }) => {
+    try {
+      console.log("Gönderilen Kategoriler:", categories); 
+      const response = await axios.get("http://localhost:5000/api/blogs/search", {
+        params: { categories: categories.join(",") }, 
+      });
+      console.log("Gelen Bloglar:", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Bloglar yüklenemedi");
+    }
+  }
+);
+
+
+export const fetchBlogsByTags = createAsyncThunk(
+  "blog/fetchBlogsByTags",
+  async ({ tags }, { rejectWithValue }) => {
+    try {
+      console.log("Gönderilen Etiketler:", tags);
+      const response = await axios.get("http://localhost:5000/api/blogs/search", {
+        params: { tags: tags.join(",") }, // 🔥 API'ye tags'i string olarak gönderiyoruz
+      });
+      console.log("Gelen Bloglar:", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Bloglar yüklenemedi");
+    }
+  }
+);
+
+export const fetchSearchedBlogs = createAsyncThunk(
+  "blog/fetchSearchedBlogs",
+  async (searchQuery, { rejectWithValue }) => {
+    try {
+      console.log("🔍 Arama yapılıyor:", searchQuery);
+      const response = await axios.get("http://localhost:5000/api/blogs/search", {
+        params: searchQuery, // Arama parametrelerini API'ye gönderiyoruz
+      });
+      console.log("✅ Arama Sonucu:", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Arama sırasında hata oluştu.");
+    }
+  }
+);
+
+
+
 const blogSlice = createSlice({
   name: "blog",
   initialState: {
-    blogs: [],        // Tüm bloglar
-    userBlogs: [],    // Kullanıcının kendi blogları
-    selectedBlog: null, // Seçili blogun detayları
+    blogs: [],        
+    userBlogs: [],  
+    latestBlogs: [],
+    popularBlogs: [], 
+    selectedCategories: [],
+    selectedTags: [],
+    searchedBlogs: [],
+    selectedBlog: null, 
+    selectedBlog: null,
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    setSelectedCategories: (state, action) => {
+      state.selectedCategories = action.payload || [];
+  },
+
+  setSelectedTags: (state, action) => {
+    state.selectedTags = action.payload || [];
+  },
+
+  resetSearchResults: (state) => {
+    state.searchedBlogs = []; // Arama sonuçlarını temizleme fonksiyonu
+  },
+
+
+  },
+
   extraReducers: (builder) => {
     builder
       // addBlog
@@ -218,8 +350,84 @@ const blogSlice = createSlice({
       .addCase(deleteBlog.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+    
+      .addCase(toggleBlogLike.fulfilled, (state, action) => {
+        const { blogId, likes } = action.payload;
+        const blogIndex = state.blogs.findIndex((b) => b._id === blogId);
+        if (blogIndex !== -1) {
+          state.blogs[blogIndex].likes = likes;
+        }
+      })
+
+      .addCase(fetchLatestBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchLatestBlogs.fulfilled, (state, action) => {
+        state.latestBlogs = action.payload; 
+        state.loading = false;
+      })
+      .addCase(fetchLatestBlogs.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+
+      .addCase(fetchPopularBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchPopularBlogs.fulfilled, (state, action) => {
+        state.popularBlogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchPopularBlogs.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+
+      .addCase(fetchBlogsByCategory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchBlogsByCategory.fulfilled, (state, action) => {
+        state.blogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchBlogsByCategory.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+
+      .addCase(fetchBlogsByTags.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchBlogsByTags.fulfilled, (state, action) => {
+        state.blogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchBlogsByTags.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+
+      .addCase(fetchSearchedBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchSearchedBlogs.fulfilled, (state, action) => {
+        state.searchedBlogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchSearchedBlogs.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
       });
+
+     
   },
 });
 
+export const { setSelectedCategories,setSelectedTags,resetSearchResults } = blogSlice.actions;
 export default blogSlice.reducer;
+
+
+
+

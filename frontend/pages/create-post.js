@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router"; // Yönlendirme için ekledik
+import { useRouter } from "next/router"; 
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserBlogs, deleteBlog } from "@/redux/slices/blogSlice";
 import Sidebar from "@/components/home/Sidebar";
@@ -11,8 +11,7 @@ import { FiMoreVertical } from "react-icons/fi";
 
 export default function CreatePost() {
   const dispatch = useDispatch();
-  const router = useRouter(); // Next.js yönlendirme için
-
+  const router = useRouter(); 
   const { token } = useSelector((state) => state.auth);
   const { userBlogs, loading, error } = useSelector((state) => state.blog);
 
@@ -45,18 +44,14 @@ export default function CreatePost() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="fixed top-0 left-0 w-full bg-white z-50 shadow-md">
         <Header />
       </div>
 
       <div className="flex pt-20">
-        {/* Sidebar */}
         <Sidebar />
 
-        {/* Ana İçerik */}
         <main className="flex-1 mx-auto max-w-6xl px-16">
-          {/* Create New Post Butonu */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="px-6 py-3 border border-gray-300 bg-white text-black font-semibold rounded-full transition mb-8"
@@ -74,14 +69,14 @@ export default function CreatePost() {
             {userBlogs.map((post) => (
               <div
                 key={post._id}
-                className="relative cursor-pointer" // Tıklanabilir yapıldı
-                onClick={() => router.push(`/blog/${post._id}`)} // Yönlendirme eklendi
+                className="relative cursor-pointer" 
+                onClick={() => router.push(`/blog/${post._id}`)} 
               >
                 {/* Üç Nokta Menüsü */}
                 <div className="absolute top-4 right-4">
                   <button
                     onClick={(e) => {
-                      e.stopPropagation(); // Yönlendirme yerine menüyü açmasını sağlar
+                      e.stopPropagation(); 
                       toggleMenu(post._id);
                     }}
                     className="p-0 rounded-full transition"
@@ -112,7 +107,11 @@ export default function CreatePost() {
                   )}
                 </div>
                 {/* Blog Kartı */}
-                <BlogCard blog={post} />
+                <BlogCard
+                  blog={post}
+                  isMyPost={true}
+                  onEdit={(post) => setEditingPost(post)}
+                />
               </div>
             ))}
           </div>

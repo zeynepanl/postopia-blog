@@ -1,3 +1,4 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const Blog = require("../db/models/Blog");
@@ -104,6 +105,84 @@ router.post("/list", authenticateToken, async (req, res) => {
   }
 });
 
+router.get("/latest", async (req, res) => {
+  try {
+    const blogs = await Blog.find()
+      .sort({ createdAt: -1 }) 
+      .limit(20)
+      .populate("author", "username email")
+      .populate("categories", "name")
+      .populate("tags", "name");
+
+    res.status(200).json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get("/popular", async (req, res) => {
+  try {
+    console.log("Popüler bloglar API çağrıldı!");
+
+    const blogs = await Blog.aggregate([
+      {
+        $addFields: {
+          likesCount: { $size: "$likes" },
+          commentsCount: { $size: "$comments" }, 
+          score: {
+            $add: [
+              { $multiply: [{ $size: "$likes" }, 2] }, 
+              { $size: "$comments" } 
+            ]
+          }
+        }
+      },
+      {
+        $sort: { score: -1 } 
+      },
+      {
+        $limit: 10 
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author"
+        }
+      },
+      {
+        $unwind: "$author"
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "categories"
+        }
+      },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "tags",
+          foreignField: "_id",
+          as: "tags"
+        }
+      }
+    ]);
+
+    console.log("Gönderilen popüler bloglar:", blogs);
+    res.status(200).json(blogs);
+  } catch (error) {
+    console.error("Popüler bloglar çekilirken hata:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 //Tekil Blog Yazısını Getirme (POST)
 router.post("/details", async (req, res) => {
   try {
@@ -128,44 +207,34 @@ router.post("/details", async (req, res) => {
 // Blog Beğenme / Beğeni Kaldırma
 router.post("/like", authenticateToken, async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id } = req.body; // 🔥 API'ye gelen 'id' değişkenini al
+    console.log("Beğeni isteği alındı, Blog ID:", id);
 
     const blog = await Blog.findById(id);
-    if (!blog) return res.status(404).json({ message: "Blog post not found." });
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
 
-    const existingLike = await Like.findOne({
-      user: req.user.id,
-      target: id,
-      type: "blog",
-    });
+    const existingLike = await Like.findOne({ user: req.user.id, target: id, type: "blog" });
 
     if (existingLike) {
-      // Beğeni kaldırma işlemi
+      // Eğer zaten beğendiyse, beğeniyi kaldır
       await existingLike.deleteOne();
-      blog.likes = blog.likes.filter(
-        (userId) => userId.toString() !== req.user.id
-      );
+      blog.likes = blog.likes.filter((userId) => userId.toString() !== req.user.id);
       await blog.save();
-      return res.status(200).json({ message: "Blog unliked." });
+      return res.status(200).json({ message: "Blog unliked.", likes: blog.likes });
     }
 
-    // Yeni beğeni ekleme
-    const newLike = new Like({
-      user: req.user.id,
-      target: id,
-      type: "blog",
-    });
+    // Eğer daha önce beğenmemişse yeni beğeni ekle
+    const newLike = new Like({ user: req.user.id, target: id, type: "blog" });
     await newLike.save();
-
-    // Blog dokümanına kullanıcıyı `likes` alanına ekleyelim
     blog.likes.push(req.user.id);
     await blog.save();
 
-    res.status(201).json({ message: "Blog liked." });
+    res.status(201).json({ message: "Blog liked.", likes: blog.likes });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 //Belirli Blogun Beğeni Sayısını Getirme
 router.get("/:blogId/count", async (req, res) => {
@@ -180,29 +249,38 @@ router.get("/:blogId/count", async (req, res) => {
   }
 });
 
-//Blog Yazılarını Arama ve Filtreleme (POST)
-router.post("/search", async (req, res) => {
+router.get("/search", async (req, res) => {
   try {
-    const { title, author, categories, tags, startDate, endDate } = req.body;
+    const { title,content, author, categories, tags, startDate, endDate } = req.query;
     let filter = {};
 
     if (title) filter.title = { $regex: title, $options: "i" };
+
+
+    if (content) {
+      filter.content = { $regex: content, $options: "i" }; 
+    }
 
     if (author && mongoose.Types.ObjectId.isValid(author)) {
       filter.author = author;
     }
 
     if (categories) {
+      console.log("Gelen Categories (String):", categories); 
+      const categoryNames = categories.split(","); // String'i diziye çevir
+      console.log("Diziye Çevrilen Categories:", categoryNames);
+
       const categoryIds = await Category.find({
-        name: { $in: categories },
+        name: { $in: categoryNames },
       }).select("_id");
+      
       filter.categories = { $in: categoryIds.map((cat) => cat._id) };
+      console.log("Filtrelenen Kategori ID'leri:", filter.categories);
     }
 
-    if (tags && tags.length > 0) {
-      const tagIds = await Tag.find({
-        name: { $in: tags },
-      }).select("_id");
+    if (tags) {
+      const tagNames = tags.split(",");
+      const tagIds = await Tag.find({ name: { $in: tagNames } }).select("_id");
       filter.tags = { $in: tagIds.map((tag) => tag._id) };
     }
 
@@ -210,21 +288,26 @@ router.post("/search", async (req, res) => {
       filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
 
+    console.log("Son Filtreleme:", filter); 
+    
     const blogs = await Blog.find(filter)
       .populate("author", "username email")
       .populate("categories", "name")
       .populate("tags", "name");
 
-    if (blogs.length === 0)
-      return res
-        .status(404)
-        .json({ message: "No blog posts found with the given criteria." });
+    console.log("Filtrelenmiş Bloglar:", blogs); 
+
+    if (blogs.length === 0) {
+      return res.status(404).json({ message: "No blog posts found with the given criteria." });
+    }
 
     res.status(200).json(blogs);
   } catch (error) {
+    console.error("Kategoriye Göre Blog Getirme Hatası:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Kullanıcının kendi bloglarını listeleme (POST)
 router.post("/my-blogs", authenticateToken, async (req, res) => {
@@ -243,3 +326,4 @@ router.post("/my-blogs", authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+

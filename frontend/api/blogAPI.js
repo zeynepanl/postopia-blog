@@ -1,3 +1,5 @@
+
+
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/blogs";
@@ -53,6 +55,20 @@ const blogAPI = {
         },
       }
     ),
+
+    toggleLike: (blogId, token) =>
+      axios.post(`${API_URL}/blogs/like`, { blogId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+
+      getLatestBlogs: () => axios.get(`${API_URL}/latest`),
+
+      getPopularBlogs: () => axios.get(`${API_URL}/popular`),
+
+  
 };
 
 export default blogAPI;
+
+
+

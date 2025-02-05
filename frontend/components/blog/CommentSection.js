@@ -1,167 +1,80 @@
-import { useState, useRef } from "react";
-import { FaRegUser, FaRegHeart } from "react-icons/fa";
-import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addComment, fetchComments, toggleLike } from "@/redux/slices/commentSlice";
+import { FaHeart } from "react-icons/fa";
 
-export default function CommentSection() {
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      text: "This guide was incredibly helpful! I can't wait to use these tips on my next trip. Thank you!",
-      author: "Emily Johnson",
-      likes: 5,
-    },
-    {
-      id: 2,
-      text: "This guide was incredibly helpful! I can't wait to use these tips on my next trip. Thank you!",
-      author: "Emily Johnson",
-      likes: 5,
-    },
-    {
-      id: 3,
-      text: "This guide was incredibly helpful! I can't wait to use these tips on my next trip. Thank you!",
-      author: "Emily Johnson",
-      likes: 5,
-    },
-    {
-      id: 4,
-      text: "This guide was incredibly helpful! I can't wait to use these tips on my next trip. Thank you!",
-      author: "Emily Johnson",
-      likes: 5,
-    },
-  ]);
+export default function CommentSection({ blogId }) {
+  const [text, setText] = useState("");
+  const dispatch = useDispatch();
+  const { comments = [], loading, error } = useSelector((state) => state.comment);
+  const { token } = useSelector((state) => state.auth);
 
-  const [newComment, setNewComment] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
-  const scrollRef = useRef(null);
-
-  const handleAddComment = () => {
-    if (newComment.trim() !== "") {
-      setComments([
-        ...comments,
-        {
-          id: comments.length + 1,
-          text: newComment,
-          author: "Anonymous",
-          likes: 0,
-        },
-      ]);
-      setNewComment("");
-      setIsFocused(false);
+  useEffect(() => {
+    if (blogId) {
+      dispatch(fetchComments({ blogId, token }));
     }
-  };
+  }, [blogId, dispatch, token]);
 
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
-
-  const handleMouseDown = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    let startX = e.pageX;
-    let scrollLeft = scrollRef.current.scrollLeft;
+    if (!text.trim()) return;
 
-    const handleMouseMove = (moveEvent) => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollLeft = scrollLeft - (moveEvent.pageX - startX);
-      }
-    };
+    dispatch(addComment({ blogId, text, token }));
+    setText(""); // Yorumu gönderdikten sonra input'u temizle
+  };
 
-    const handleMouseUp = () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+  const handleLike = (commentId) => {
+    dispatch(toggleLike({ commentId, token }));
   };
 
   return (
-    <div className="mt-10">
-      <h2 className="text-xl font-semibold border-b pb-2 text-gray-800">Comments</h2>
+    <div className="mt-8">
+      <h3 className="text-xl font-semibold text-gray-800 mb-4">Yorumlar</h3>
 
-      {/* Yorum Ekleme Alanı */}
-      <div className="mt-4">
-        <textarea
-          className={`w-full p-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 ${
-    isFocused ? "h-28 border-purple-400" : "h-12"
-  } text-black placeholder-gray-500`}
-          placeholder="Leave a comment.."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-        />
-
-        {isFocused && (
-          <div className="mt-2 flex justify-end gap-2">
-            <button
-              className="text-white bg-secondary hover:text-black"
-              onClick={() => {
-                setNewComment("");
-                setIsFocused(false);
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              className="bg-secondary border border-gray-400 px-3 py-1 rounded-lg hover:bg-gray-100"
-              onClick={handleAddComment}
-            >
-              Send
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Yorum Kartları */}
-      <div className="relative mt-6">
-        <div
-          ref={scrollRef}
-          className="flex gap-6 overflow-hidden w-full cursor-grab"
-          onMouseDown={handleMouseDown}
-        >
+      {/* 📌 **Yorum Listeleme** */}
+      {loading ? (
+        <p>Yükleniyor...</p>
+      ) : error ? (
+        <p className="text-red-500">{error.message || "Yorumlar yüklenirken hata oluştu."}</p>
+      ) : !comments || comments.length === 0 ? (
+        <p className="text-gray-500">Henüz yorum yok.</p>
+      ) : (
+        <ul className="space-y-4">
           {comments.map((comment) => (
-            <div
-              key={comment.id}
-              className="min-w-[300px] border p-4 rounded-lg shadow-md bg-white transition hover:shadow-lg"
-            >
-              <p className="text-gray-700 text-md">{comment.text}</p>
-              <div className="flex justify-between items-center mt-4 text-md text-gray-600">
-                <div className="flex items-center gap-2">
-                  <FaRegUser className="text-gray-500" />
-                  <span>{comment.author}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <FaRegHeart className="text-lg cursor-pointer hover:text-red-500 transition" />
-                  <span>{comment.likes}</span>
-                </div>
+            <li key={comment?._id} className="border p-2 rounded-md flex justify-between items-center">
+              <div>
+                <p className="text-gray-700">{comment?.text || "Yorum içeriği mevcut değil"}</p>
+                <span className="text-sm text-gray-500">
+                  {comment?.user?.username || "Anonim"} -{" "}
+                  {comment?.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "Bilinmeyen tarih"}
+                </span>
               </div>
-            </div>
+              <button onClick={() => handleLike(comment?._id)} className="flex items-center gap-1">
+                <FaHeart className={comment?.likedByUser ? "text-red-500" : "text-gray-400"} />
+                <span className="text-gray-600">{comment?.likes || 0}</span>
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
+      )}
 
-        {/* Sayfalama Butonları (Aşağıda) */}
-        <div className="mt-6 flex justify-center gap-4">
-          <button
-            className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition flex items-center justify-center"
-            onClick={scrollLeft}
-          >
-            <FiArrowLeft className="text-xl text-gray-700" />
-          </button>
-          <button
-            className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition flex items-center justify-center"
-            onClick={scrollRight}
-          >
-            <FiArrowRight className="text-xl text-gray-700" />
-          </button>
-        </div>
-      </div>
+      {/* 📌 **Yorum Ekleme Formu** */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
+        <textarea
+          className="border p-2 rounded-md w-full"
+          rows="3"
+          placeholder="Yorumunuzu yazın..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="bg-primary text-white px-4 py-2 rounded-md"
+          disabled={loading}
+        >
+          {loading ? "Gönderiliyor..." : "Yorum Ekle"}
+        </button>
+      </form>
     </div>
   );
 }

@@ -5,9 +5,9 @@ import { fetchBlogDetails } from "@/redux/slices/blogSlice";
 import Header from "@/components/home/Header";
 import Sidebar from "@/components/home/Sidebar";
 import { FaRegCalendarAlt, FaBookOpen } from "react-icons/fa";
-import CommentSection from "@/components/blog/CommentSection";
 import SimilarPosts from "@/components/blog/SimilarPosts";
-import { blogData } from "@/data/blogs"; 
+import { blogData } from "@/data/blogs";
+import CommentSection from "@/components/blog/CommentSection";
 
 export default function BlogDetail() {
   const router = useRouter();
@@ -23,8 +23,16 @@ export default function BlogDetail() {
   }, [id, dispatch]);
 
   if (loading) return <p className="text-gray-500 text-center">Loading...</p>;
-  if (error) return <p className="text-red-500 text-center">{error}</p>;
-  if (!blog) return <p className="text-gray-600 text-xl text-center">Blog not found.</p>;
+
+  if (error) {
+    console.error("Blog detayları yüklenirken hata oluştu:", error);
+    return <p className="text-red-500 text-center">{error.message || "Bir hata oluştu"}</p>;
+  }
+
+  if (!blog || typeof blog !== "object" || Array.isArray(blog)) {
+    console.error("Geçersiz blog nesnesi:", blog);
+    return <p className="text-gray-600 text-xl text-center">Blog not found.</p>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,7 +57,7 @@ export default function BlogDetail() {
           </div>
 
           <div className="flex justify-center gap-2 mt-2">
-            {blog.tags.map((tag, index) => (
+            {blog.tags?.map((tag, index) => (
               <span key={index} className="bg-primary text-white px-3 py-1 rounded-full text-md">
                 {tag.name}
               </span>
@@ -61,7 +69,7 @@ export default function BlogDetail() {
           <div className="flex justify-center items-center gap-6 text-gray-600 text-md mt-3">
             <div className="flex items-center gap-1">
               <FaRegCalendarAlt className="text-lg" />
-              <span>{new Date(blog.createdAt).toLocaleDateString()}</span>
+              <span>{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "Unknown date"}</span>
             </div>
             <div className="flex items-center gap-1">
               <FaBookOpen className="text-lg" />
@@ -75,8 +83,9 @@ export default function BlogDetail() {
 
           <p className="text-gray-700 text-xl mt-6 leading-relaxed">{blog.content}</p>
 
-          <CommentSection />
-          {/* Benzer Postlar */}
+          {/* 📌 Eğer comments eksikse boş array olarak geçiriyoruz */}
+          <CommentSection blogId={blog._id} comments={blog.comments || []} />
+
           <SimilarPosts currentBlog={blog} blogs={blogData} />
         </main>
       </div>

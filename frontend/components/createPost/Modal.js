@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addBlog } from "../../redux/slices/blogSlice";
-import { fetchTags, addTagAPI } from "../../api/tagAPI"; // ✅ API fonksiyonlarını ekledik
-import axios from "axios";
+import { fetchTags, addTagAPI } from "../../api/tagAPI"; 
+import { fetchCategories } from "../../redux/slices/categorySlice"; // ✅ Redux'tan kategorileri çekiyoruz.
 import { FaImages } from "react-icons/fa";
 import { IoReturnUpBackOutline } from "react-icons/io5";
 
@@ -10,30 +10,28 @@ export default function Modal({ onClose }) {
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
   const { loading, error } = useSelector((state) => state.blog);
+  const { categories } = useSelector((state) => state.category); // ✅ Redux'tan kategorileri alıyoruz.
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [categories, setCategories] = useState([]); 
-  const [selectedCategories, setSelectedCategories] = useState([]); 
-  const [availableTags, setAvailableTags] = useState([]); 
-  const [selectedTags, setSelectedTags] = useState([]); 
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [newTag, setNewTag] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
 
+  // 🚀 Kategoriler yüklü değilse, Redux store'dan çekiyoruz
   useEffect(() => {
     if (token) {
-      axios
-        .post("http://localhost:5000/api/categories/list", {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(response => setCategories(response.data))
-        .catch(error => console.error("Kategorileri alırken hata:", error));
+      if (categories.length === 0) {
+        dispatch(fetchCategories()); // ✅ Eğer kategoriler yüklenmemişse API'den getiriyoruz.
+      }
 
       fetchTags(token)
         .then(setAvailableTags)
         .catch(error => console.error("Etiketleri alırken hata:", error));
     }
-  }, [token]);
+  }, [token, dispatch, categories.length]);
 
   const toggleCategory = (categoryId) => {
     setSelectedCategories((prev) =>

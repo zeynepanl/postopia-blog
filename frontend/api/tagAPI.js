@@ -3,7 +3,7 @@ import apiClient from "./apiClient";
 export const fetchTags = async (token) => {
   try {
     const response = await apiClient.post(
-      "/tags/list",
+      "/tags",
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
