@@ -12,18 +12,20 @@ export default function HomeContent() {
   const dispatch = useDispatch();
   
   // Redux store'dan verileri çekiyoruz
-  const { latestBlogs, popularBlogs, blogs, selectedCategories, selectedTags, loading } = useSelector((state) => state.blog);
+  const { latestBlogs, popularBlogs, blogs, selectedCategories, selectedTags,searchedBlogs, loading } = useSelector((state) => state.blog);
 
   // Eğer kategori seçildiyse sadece filtrelenen blogları göster
   const displayedBlogs =
-  selectedCategories.length > 0
+  searchedBlogs.length > 0
+    ? searchedBlogs
+    : selectedCategories.length > 0
     ? blogs
     : selectedTags.length > 0
     ? blogs
     : activeTab === "Latest"
     ? latestBlogs
     : popularBlogs;
-// Eğer Popular sekmesi seçildiyse popüler blogları göster
+
 
   // Sekmeye göre API çağrısı yap
   useEffect(() => {

@@ -185,6 +185,22 @@ export const fetchBlogsByTags = createAsyncThunk(
   }
 );
 
+export const fetchSearchedBlogs = createAsyncThunk(
+  "blog/fetchSearchedBlogs",
+  async (searchQuery, { rejectWithValue }) => {
+    try {
+      console.log("🔍 Arama yapılıyor:", searchQuery);
+      const response = await axios.get("http://localhost:5000/api/blogs/search", {
+        params: searchQuery, // Arama parametrelerini API'ye gönderiyoruz
+      });
+      console.log("✅ Arama Sonucu:", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Arama sırasında hata oluştu.");
+    }
+  }
+);
+
 
 
 const blogSlice = createSlice({
@@ -196,6 +212,7 @@ const blogSlice = createSlice({
     popularBlogs: [], 
     selectedCategories: [],
     selectedTags: [],
+    searchedBlogs: [],
     selectedBlog: null, 
     selectedBlog: null,
     loading: false,
@@ -208,6 +225,10 @@ const blogSlice = createSlice({
 
   setSelectedTags: (state, action) => {
     state.selectedTags = action.payload || [];
+  },
+
+  resetSearchResults: (state) => {
+    state.searchedBlogs = []; // Arama sonuçlarını temizleme fonksiyonu
   },
 
 
@@ -386,13 +407,25 @@ const blogSlice = createSlice({
       .addCase(fetchBlogsByTags.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
+      })
+
+      .addCase(fetchSearchedBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchSearchedBlogs.fulfilled, (state, action) => {
+        state.searchedBlogs = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchSearchedBlogs.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
       });
 
      
   },
 });
 
-export const { setSelectedCategories,setSelectedTags } = blogSlice.actions;
+export const { setSelectedCategories,setSelectedTags,resetSearchResults } = blogSlice.actions;
 export default blogSlice.reducer;
 
 

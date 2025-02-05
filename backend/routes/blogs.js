@@ -251,10 +251,15 @@ router.get("/:blogId/count", async (req, res) => {
 
 router.get("/search", async (req, res) => {
   try {
-    const { title, author, categories, tags, startDate, endDate } = req.query;
+    const { title,content, author, categories, tags, startDate, endDate } = req.query;
     let filter = {};
 
     if (title) filter.title = { $regex: title, $options: "i" };
+
+
+    if (content) {
+      filter.content = { $regex: content, $options: "i" }; 
+    }
 
     if (author && mongoose.Types.ObjectId.isValid(author)) {
       filter.author = author;
