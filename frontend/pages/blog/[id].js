@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchBlogDetails } from "@/redux/slices/blogSlice";
+import { fetchBlogDetails, fetchBlogs } from "@/redux/slices/blogSlice"; // fetchBlogs eklediğinizi varsayıyoruz
 import Header from "@/components/home/Header";
 import Sidebar from "@/components/home/Sidebar";
 import { FaRegCalendarAlt, FaBookOpen } from "react-icons/fa";
-import SimilarPosts from "@/components/blog/SimilarPosts";
-import { blogData } from "@/data/blogs";
 import CommentSection from "@/components/blog/CommentSection";
+import SimilarPosts from "@/components/blog/SimilarPosts";
 
 export default function BlogDetail() {
   const router = useRouter();
@@ -91,10 +90,11 @@ export default function BlogDetail() {
 
           <p className="text-gray-700 text-xl mt-6 leading-relaxed">{blog.content}</p>
 
-          {/* Eğer comments eksikse boş array olarak geçiriyoruz */}
+          {/* Yorum bölümü */}
           <CommentSection blogId={blog._id} comments={blog.comments || []} />
 
-          <SimilarPosts currentBlog={blog} blogs={blogData} />
+          {/* Yorum alanından sonra benzer postlar */}
+          <SimilarPosts currentBlog={blog} />
         </main>
       </div>
     </div>
