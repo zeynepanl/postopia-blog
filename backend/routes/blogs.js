@@ -1,42 +1,49 @@
-
 const express = require("express");
 const mongoose = require("mongoose");
 const Blog = require("../db/models/Blog");
 const Category = require("../db/models/Category");
 const Tag = require("../db/models/Tag");
 const Like = require("../db/models/Like");
+const upload = require('../middleware/uploadMiddleware');
 
 const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 //Blog Yazısı Oluşturma (POST)
-router.post("/create", authenticateToken, async (req, res) => {
+router.post("/create", authenticateToken, upload.single('image'), async (req, res) => {
   try {
-    console.log("Backend'e Gelen İstek Verisi:", req.body);
+    console.log("Gelen request body:", req.body);
+    console.log("Gelen dosya:", req.file);
 
-    const { title, content, categories, tags } = req.body;
-
-    if (!title || !content) {
-      return res
-        .status(400)
-        .json({ error: "Title ve content alanları zorunludur." });
-    }
+    const { title, content } = req.body;
+    
+    // Resim URL'ini oluştur
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    console.log("Oluşturulan image URL:", imageUrl);
 
     const newBlog = new Blog({
       title,
       content,
+      image: imageUrl, // image alanını ekle
       author: req.user.id,
-      categories,
-      tags,
+      categories: req.body.categories ? JSON.parse(req.body.categories) : [],
+      tags: req.body.tags ? JSON.parse(req.body.tags) : []
     });
 
     await newBlog.save();
-    res
-      .status(201)
-      .json({ message: "Blog post created successfully.", blog: newBlog });
+    console.log("Kaydedilen blog:", newBlog);
+
+    res.status(201).json({
+      message: "Blog başarıyla oluşturuldu",
+      blog: newBlog
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Blog oluşturma hatası:", error);
+    res.status(500).json({
+      error: "Blog oluşturulurken bir hata oluştu",
+      details: error.message
+    });
   }
 });
 

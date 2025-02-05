@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addBlog } from "../../redux/slices/blogSlice";
 import { fetchTags, addTagAPI } from "../../api/tagAPI"; 
@@ -11,6 +11,7 @@ export default function Modal({ onClose }) {
   const { token } = useSelector((state) => state.auth);
   const { loading, error } = useSelector((state) => state.blog);
   const { categories } = useSelector((state) => state.category); // ✅ Redux'tan kategorileri alıyoruz.
+  const fileInputRef = useRef(null);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -19,6 +20,8 @@ export default function Modal({ onClose }) {
   const [selectedTags, setSelectedTags] = useState([]);
   const [newTag, setNewTag] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   // 🚀 Kategoriler yüklü değilse, Redux store'dan çekiyoruz
   useEffect(() => {
@@ -55,25 +58,81 @@ export default function Modal({ onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleImageSelect = (e) => {
+    try {
+      const file = e.target.files[0];
+      if (file) {
+        // Dosya boyutu kontrolü (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Dosya boyutu 5MB\'dan küçük olmalıdır.');
+          return;
+        }
+
+        // Dosya tipi kontrolü
+        if (!file.type.startsWith('image/')) {
+          alert('Lütfen sadece resim dosyası seçin.');
+          return;
+        }
+
+        setSelectedImage(file);
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl);
+
+        // Input'u resetle
+        e.target.value = '';
+      }
+    } catch (error) {
+      console.error('Resim seçme hatası:', error);
+      alert('Resim seçilirken bir hata oluştu.');
+    }
+  };
+
+  const handleGalleryClick = () => {
+    if (fileInputRef && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newBlog = {
-      title,
-      content,
-      categories: selectedCategories,
-      tags: selectedTags,
-      date: new Date().toISOString(),
-    };
+    try {
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+      
+      // Resim varsa ekle
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
 
-    dispatch(addBlog({ blogData: newBlog, token }));
-    console.log("Gönderilen Blog Verisi:", newBlog);
+      // Kategoriler ve etiketler
+      if (selectedCategories.length > 0) {
+        formData.append('categories', JSON.stringify(selectedCategories));
+      }
+      if (selectedTags.length > 0) {
+        formData.append('tags', JSON.stringify(selectedTags));
+      }
 
-    setTitle("");
-    setContent("");
-    setSelectedTags([]);
-    setSelectedCategories([]);
-    onClose();
+      // FormData içeriğini kontrol et
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
+
+      await dispatch(addBlog({ blogData: formData, token }));
+
+      // Form temizleme
+      setTitle("");
+      setContent("");
+      setSelectedImage(null);
+      setImagePreview(null);
+      setSelectedCategories([]);
+      setSelectedTags([]);
+      onClose();
+
+    } catch (error) {
+      console.error("Blog oluşturma hatası:", error);
+    }
   };
 
   return (
@@ -172,8 +231,40 @@ export default function Modal({ onClose }) {
             required
           ></textarea>
 
+          {imagePreview && (
+            <div className="relative mb-4">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-h-48 w-full object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageSelect}
+            accept="image/*"
+            className="hidden"
+          />
+
           <div className="flex items-center justify-between w-full mt-6 px-4">
-            <button className="flex items-center justify-center w-12 h-12 bg-white text-black rounded-md border border-gray-300 hover:bg-gray-100 transition">
+            <button
+              type="button"
+              onClick={handleGalleryClick}
+              className="flex items-center justify-center w-12 h-12 bg-white text-black rounded-md border border-gray-300 hover:bg-gray-100 transition"
+            >
               <FaImages className="text-xl" />
             </button>
             <div className="flex-1 flex justify-center">

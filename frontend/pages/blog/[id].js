@@ -34,6 +34,9 @@ export default function BlogDetail() {
     return <p className="text-gray-600 text-xl text-center">Blog not found.</p>;
   }
 
+  // Eğer blog.image varsa ve sunucudan gelen relative path içeriyorsa, base URL ekleyerek tam URL oluşturuyoruz.
+  const imageUrl = blog.image ? `http://localhost:5000${blog.image}` : null;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="fixed top-0 left-0 w-full bg-white z-50">
@@ -73,17 +76,22 @@ export default function BlogDetail() {
             </div>
             <div className="flex items-center gap-1">
               <FaBookOpen className="text-lg" />
-              <span>{blog.readTime} Mins Read</span>
+              <span>{blog.readTime ? `${blog.readTime} Mins Read` : "N/A"}</span>
             </div>
           </div>
 
-          {blog.image && (
-            <img src={blog.image} alt="Blog Image" className="rounded-xl mt-6 mx-auto w-full" />
+          {/* Blog görseli varsa, tam URL ile gösteriyoruz */}
+          {imageUrl && (
+            <img 
+              src={imageUrl} 
+              alt="Blog Image" 
+              className="rounded-xl mt-6 mx-auto w-full" 
+            />
           )}
 
           <p className="text-gray-700 text-xl mt-6 leading-relaxed">{blog.content}</p>
 
-          {/* 📌 Eğer comments eksikse boş array olarak geçiriyoruz */}
+          {/* Eğer comments eksikse boş array olarak geçiriyoruz */}
           <CommentSection blogId={blog._id} comments={blog.comments || []} />
 
           <SimilarPosts currentBlog={blog} blogs={blogData} />
