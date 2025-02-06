@@ -81,7 +81,7 @@ export default function BlogDetail() {
           </div>
 
           <h1
-            className="text-3xl font-bold text-center text-gray-900 mt-6"
+            className="text-3xl font-bold text-center text-gray-900 mt-6 break-words"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.title) }}
           ></h1>
 
@@ -112,7 +112,7 @@ export default function BlogDetail() {
           )}
 
           <div
-            className="text-gray-700 text-xl mt-6 leading-relaxed"
+            className="text-gray-700 text-xl mt-6 leading-relaxed break-words"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(blog.content),
             }}

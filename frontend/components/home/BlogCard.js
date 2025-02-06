@@ -124,12 +124,12 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
               <button
                 type="button"
                 onClick={handleLike}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white  text-gray-500 hover:text-red-500 transition"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white  text-gray-400 hover:text-red-500 transition"
               >
                 {isLiked ? (
                   <FaHeart className="text-red-500" />
                 ) : (
-                  <FaRegHeart className="text-gray-400 hover:text-red-500 transition" />
+                  <FaRegHeart className="text-gray-500 hover:text-red-500 transition" />
                 )}
                 <span>{likeCount}</span>
               </button>

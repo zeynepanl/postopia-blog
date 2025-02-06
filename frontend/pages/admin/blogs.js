@@ -7,22 +7,22 @@ import { fetchCategories, createCategory, updateCategory, deleteCategory } from 
 import { fetchBlogs, deleteBlog } from "@/redux/slices/blogSlice";
 import { fetchAllComments, deleteComment } from "@/redux/slices/commentSlice";
 
-// Import modalları (kullanıcı modallarıyla aynıysa)
-import Modal from "@/components/createPost/Modal"; // Yeni blog ekleme modalı
-import EditModal from "@/components/createPost/EditModal"; // Blog düzenleme modalı
+// Import modals (if these are the same as for users)
+import Modal from "@/components/createPost/Modal"; // New blog creation modal
+import EditModal from "@/components/createPost/EditModal"; // Blog editing modal
 
 export default function BlogManagement() {
   const dispatch = useDispatch();
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("Category");
-  // Yeni: Arama terimi için state
+  // New: State for the search term
   const [searchTerm, setSearchTerm] = useState("");
 
   const { categories, loading: catLoading, error: catError } = useSelector((state) => state.category);
   const { blogs, loading: postLoading, error: postError } = useSelector((state) => state.blog);
   const { comments, loading: comLoading, error: comError } = useSelector((state) => state.comment);
 
-  // Admin için blog modalları için state
+  // Admin blog modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedBlogForEdit, setSelectedBlogForEdit] = useState(null);
 
@@ -32,7 +32,7 @@ export default function BlogManagement() {
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
 
-  // Örnek: Eğer kategori dışındaki (Post, Comment) filtrelerde token gerekli ise
+  // Fetch data based on the selected filter
   useEffect(() => {
     if (selectedFilter === "Category") {
       dispatch(fetchCategories());
@@ -50,13 +50,13 @@ export default function BlogManagement() {
   const handleFilterSelect = (filterName) => {
     setSelectedFilter(filterName);
     setFilterOpen(false);
-    // Temizlik işlemleri (örneğin, modalları kapatma)
+    // Cleanup (e.g., close modals)
     setShowCreateModal(false);
     setSelectedBlogForEdit(null);
-    // Arama terimini de temizleyelim
+    // Also clear the search term
     setSearchTerm("");
 
-    // Eğer kategori filtresine geçiliyorsa, temizle
+    // If switching to category, clear category edit states
     if (filterName === "Category") {
       setEditCategoryId(null);
       setEditCategoryName("");
@@ -64,7 +64,7 @@ export default function BlogManagement() {
     }
   };
 
-  // Kategori ekleme
+  // Category addition
   const handleAddCategory = (e) => {
     e.preventDefault();
     if (newCategory.trim()) {
@@ -73,7 +73,7 @@ export default function BlogManagement() {
     }
   };
 
-  // Kategori güncelleme
+  // Category update
   const handleUpdateCategory = (e) => {
     e.preventDefault();
     if (editCategoryName.trim() && editCategoryId) {
@@ -83,14 +83,14 @@ export default function BlogManagement() {
     }
   };
 
-  // Kategori silme
+  // Category deletion
   const handleDeleteCategory = (id) => {
     if (window.confirm("Bu kategoriyi silmek istediğinize emin misiniz?")) {
       dispatch(deleteCategory({ id, token }));
     }
   };
 
-  // Blog silme
+  // Blog deletion
   const handleDeleteBlog = (blogId) => {
     if (window.confirm("Bu blogu silmek istediğinize emin misiniz?")) {
       dispatch(deleteBlog({ blogId, token }));
@@ -99,7 +99,7 @@ export default function BlogManagement() {
 
   const handleDeleteComment = (commentId, blogId) => {
     if (window.confirm("Bu yorumu silmek istediğinize emin misiniz?")) {
-      // blogId admin panelinde her yorumun blog bilgisinde olmayabilir, bu durumda blogId'yi opsiyonel gönderebilirsiniz
+      // In admin panel, every comment may not include the blog data. Pass blogId optionally.
       dispatch(deleteComment({ commentId, token, blogId }));
     }
   };
@@ -107,18 +107,19 @@ export default function BlogManagement() {
   const renderTable = () => {
     if (selectedFilter === "Category") {
       if (catLoading) return <p>Loading Categories...</p>;
-      if (catError) return <p>Error: {typeof catError === "object" ? JSON.stringify(catError) : catError}</p>;
+      if (catError)
+        return <p>Error: {typeof catError === "object" ? JSON.stringify(catError) : catError}</p>;
 
-      // Filtreleme: kategori adı searchTerm içermeli
+      // Filter: category name must include searchTerm
       const filteredCategories = categories.filter((cat) =>
         cat.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
       return (
         <div>
-          {/* Kategori ekleme / güncelleme formu */}
+          {/* Category add/update form */}
           {editCategoryId ? (
-            <form onSubmit={handleUpdateCategory} className="mb-4 flex gap-2">
+            <form onSubmit={handleUpdateCategory} className="mb-4 flex gap-2 text-black">
               <input
                 type="text"
                 placeholder="Edit category name"
@@ -127,7 +128,7 @@ export default function BlogManagement() {
                 className="px-4 py-2 border rounded flex-1"
                 required
               />
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
+              <button type="submit" className="px-4 py-2 bg-secondary text-white rounded">
                 Update
               </button>
               <button
@@ -142,7 +143,7 @@ export default function BlogManagement() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleAddCategory} className="mb-4 flex gap-2">
+            <form onSubmit={handleAddCategory} className="mb-4 flex gap-2 text-black">
               <input
                 type="text"
                 placeholder="New category name"
@@ -151,14 +152,18 @@ export default function BlogManagement() {
                 className="px-4 py-2 border rounded flex-1"
                 required
               />
-              <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded" disabled={catLoading}>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-secondary text-white rounded"
+                disabled={catLoading}
+              >
                 Add Category
               </button>
             </form>
           )}
 
-          {/* Kategori listesi */}
-          <table className="w-full border">
+          {/* Category list table */}
+          <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
                 <th className="text-left py-4 font-bold text-primary text-lg">Category</th>
@@ -169,20 +174,23 @@ export default function BlogManagement() {
             <tbody>
               {filteredCategories.map((cat) => (
                 <tr key={cat._id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-4 text-black">{cat.name}</td>
-                  <td className="py-2 px-4 text-black">{cat.blogCount || 0}</td>
-                  <td className="py-2 px-4">
+                  <td className="py-4 px-4 text-gray-900">{cat.name}</td>
+                  <td className="py-4 px-4 text-gray-900">{cat.blogCount || 0}</td>
+                  <td className="py-4 px-4 text-right">
                     <button
-                      className="mr-2 px-2 py-1 bg-blue-500 text-white rounded"
+                      className="mr-2 px-2 py-1 bg-white text-black rounded"
                       onClick={() => {
                         setEditCategoryId(cat._id);
                         setEditCategoryName(cat.name);
                       }}
                     >
-                      <FiEdit size={16} />
+                      <FiEdit size={20} />
                     </button>
-                    <button className="px-2 py-1 bg-red-500 text-white rounded" onClick={() => handleDeleteCategory(cat._id)}>
-                      <FiTrash size={16} />
+                    <button
+                      className="px-2 py-1 bg-white text-black rounded"
+                      onClick={() => handleDeleteCategory(cat._id)}
+                    >
+                      <FiTrash size={20} />
                     </button>
                   </td>
                 </tr>
@@ -203,7 +211,7 @@ export default function BlogManagement() {
       if (comError)
         return <p>Error: {typeof comError === "object" ? JSON.stringify(comError) : comError}</p>;
 
-      // Filtreleme: yorum ID, yazar adı veya blog ID'si içerisinde searchTerm geçmeli
+      // Filter: search by comment ID, author name, or blog ID
       const filteredComments = comments.filter((com) => {
         const idMatch = com._id.toLowerCase().includes(searchTerm.toLowerCase());
         const userMatch = com.user?.username?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -256,7 +264,7 @@ export default function BlogManagement() {
       if (postError)
         return <p>Error: {typeof postError === "object" ? JSON.stringify(postError) : postError}</p>;
 
-      // Filtreleme: post başlığı, yazar adı veya kategori isimlerinde searchTerm geçmeli
+      // Filter: search by post title, author name, or category names
       const filteredPosts = blogs.filter((post) => {
         const titleMatch = (post.title || "").toLowerCase().includes(searchTerm.toLowerCase());
         const authorMatch = (post.author?.username || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -265,7 +273,6 @@ export default function BlogManagement() {
           post.categories.some((cat) => (cat.name || "").toLowerCase().includes(searchTerm.toLowerCase()));
         return titleMatch || authorMatch || categoryMatch;
       });
-      
 
       return (
         <table className="w-full">
@@ -291,10 +298,16 @@ export default function BlogManagement() {
                 <td className="py-4 text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</td>
                 <td className="py-4">
                   <div className="flex justify-end gap-3">
-                    <button className="text-gray-700 bg-white hover:text-gray-600" onClick={() => setSelectedBlogForEdit(post)}>
+                    <button
+                      className="text-gray-700 bg-white hover:text-gray-600"
+                      onClick={() => setSelectedBlogForEdit(post)}
+                    >
                       <FiEdit size={20} />
                     </button>
-                    <button className="text-gray-700 bg-white hover:text-gray-600" onClick={() => handleDeleteBlog(post._id)}>
+                    <button
+                      className="text-gray-700 bg-white hover:text-gray-600"
+                      onClick={() => handleDeleteBlog(post._id)}
+                    >
                       <FiTrash size={20} />
                     </button>
                   </div>
@@ -365,7 +378,7 @@ export default function BlogManagement() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">{selectedFilter} List</h2>
             {selectedFilter === "Post" && (
-              <button onClick={() => setShowCreateModal(true)} className="px-4 py-2 bg-green-600 text-white rounded">
+              <button onClick={() => setShowCreateModal(true)} className="px-4 py-2 bg-secondary text-white rounded">
                 Add New Post
               </button>
             )}
