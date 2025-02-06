@@ -3,10 +3,9 @@ import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
 import { FiSearch, FiFilter, FiCalendar, FiEdit, FiTrash } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories } from "@/redux/slices/categorySlice";
+import { fetchCategories, createCategory, updateCategory, deleteCategory } from "@/redux/slices/categorySlice";
 import { fetchBlogs } from "@/redux/slices/blogSlice";
-import { fetchAllComments } from "@/redux/slices/commentSlice"; // Yeni thunk
-import { comment } from "postcss";
+import { fetchAllComments } from "@/redux/slices/commentSlice";
 
 export default function BlogManagement() {
   const dispatch = useDispatch();
@@ -23,12 +22,16 @@ export default function BlogManagement() {
     (state) => state.comment
   );
 
-  // auth slice'dan token'ı çekiyoruz:
   const { token } = useSelector((state) => state.auth);
+
+  // Yerel state: Yeni kategori adı, güncelleme modunu kontrol için editId ve editName
+  const [newCategory, setNewCategory] = useState("");
+  const [editCategoryId, setEditCategoryId] = useState(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
 
   useEffect(() => {
     if (selectedFilter === "Category") {
-      dispatch(fetchCategories(token));
+      dispatch(fetchCategories());
     } else if (selectedFilter === "Post") {
       dispatch(fetchBlogs(token));
     } else if (selectedFilter === "Comment") {
@@ -36,7 +39,6 @@ export default function BlogManagement() {
         console.error("Token bulunamadı, lütfen giriş yapın.");
         return;
       }
-      // Tüm yorumları çekmek için yeni thunk'u kullanıyoruz.
       dispatch(fetchAllComments({ token }));
     }
   }, [selectedFilter, dispatch, token]);
@@ -44,40 +46,136 @@ export default function BlogManagement() {
   const handleFilterSelect = (filterName) => {
     setSelectedFilter(filterName);
     setFilterOpen(false);
+    // Eğer kategori filtresine geçiliyorsa, temizle
+    if(filterName === "Category"){
+      setEditCategoryId(null);
+      setEditCategoryName("");
+      setNewCategory("");
+    }
+  };
+
+  // Kategori ekleme
+  const handleAddCategory = (e) => {
+    e.preventDefault();
+    if (newCategory.trim()) {
+      dispatch(createCategory({ name: newCategory, token }));
+      setNewCategory("");
+    }
+  };
+
+  // Kategori güncelleme
+  const handleUpdateCategory = (e) => {
+    e.preventDefault();
+    if (editCategoryName.trim() && editCategoryId) {
+      dispatch(updateCategory({ id: editCategoryId, name: editCategoryName, token }));
+      setEditCategoryId(null);
+      setEditCategoryName("");
+    }
+  };
+
+  // Kategori silme
+  const handleDeleteCategory = (id) => {
+    if (window.confirm("Bu kategoriyi silmek istediğinize emin misiniz?")) {
+      dispatch(deleteCategory({ id, token }));
+    }
   };
 
   const renderTable = () => {
     if (selectedFilter === "Category") {
       if (catLoading) return <p>Loading Categories...</p>;
-      if (catError) return <p>Error: {typeof catError === 'object' ? JSON.stringify(catError) : catError}</p>;
+      if (catError)
+        return (
+          <p>
+            Error:{" "}
+            {typeof catError === "object" ? JSON.stringify(catError) : catError}
+          </p>
+        );
       return (
-        <table className="w-full">
-          <thead>
+        <div>
+          {/* Kategori ekleme / güncelleme formu */}
+          {editCategoryId ? (
+            <form onSubmit={handleUpdateCategory} className="mb-4 flex gap-2">
+              <input
+                type="text"
+                placeholder="Edit category name"
+                value={editCategoryName}
+                onChange={(e) => setEditCategoryName(e.target.value)}
+                className="px-4 py-2 border rounded flex-1"
+                required
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Update
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-300 text-black rounded"
+                onClick={() => {
+                  setEditCategoryId(null);
+                  setEditCategoryName("");
+                }}
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleAddCategory} className="mb-4 flex gap-2">
+              <input
+                type="text"
+                placeholder="New category name"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="px-4 py-2 border rounded flex-1"
+                required
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-purple-600 text-white rounded"
+                disabled={catLoading}
+              >
+                Add Category
+              </button>
+            </form>
+          )}
+
+          {/* Kategori listesi */}
+          <table className="w-full border">
+            <thead>
             <tr className="border-b border-gray-100">
               <th className="text-left py-4 font-bold text-primary text-lg">Category</th>
               <th className="text-left py-4 font-bold text-primary text-lg">Number of Blog</th>
               <th className="text-right py-4 font-bold text-primary text-lg">Actions</th>
             </tr>
-          </thead>
-          <tbody>
-            {categories.map((cat, index) => (
-              <tr key={cat._id || index} className="border-b border-gray-50 hover:bg-gray-50">
-                <td className="py-4 text-gray-900 font-medium">{cat.name}</td>
-                <td className="py-4 text-gray-500">{cat.blogCount || 0}</td>
-                <td className="py-4">
-                  <div className="flex justify-end gap-3">
-                    <button className="text-gray-700 bg-white hover:text-gray-600">
-                      <FiEdit size={20} />
+            </thead>
+            <tbody>
+              {categories.map((cat) => (
+                <tr key={cat._id} className="border-b hover:bg-gray-50">
+                  <td className="py-2 px-4">{cat.name}</td>
+                  <td className="py-2 px-4">{cat.blogCount || 0}</td>
+                  <td className="py-2 px-4">
+                    <button
+                      className="mr-2 px-2 py-1 bg-blue-500 text-white rounded"
+                      onClick={() => {
+                        setEditCategoryId(cat._id);
+                        setEditCategoryName(cat.name);
+                      }}
+                    >
+                      <FiEdit size={16} />
                     </button>
-                    <button className="text-gray-700 bg-white hover:text-gray-600">
-                      <FiTrash size={20} />
+                    <button
+                      className="px-2 py-1 bg-red-500 text-white rounded"
+                      onClick={() => handleDeleteCategory(cat._id)}
+                    >
+                      <FiTrash size={16} />
                     </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       );
     } else if (selectedFilter === "Comment") {
       if (comLoading) return <p>Loading Comments...</p>;
@@ -92,29 +190,16 @@ export default function BlogManagement() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100">
-              <th className="text-left py-4 font-bold text-primary text-lg">
-                Comment ID
-              </th>
-              <th className="text-left py-4 font-bold text-primary text-lg">
-                Author
-              </th>
-              <th className="text-left py-4 font-bold text-primary text-lg">
-                Blog ID
-              </th>
-              <th className="text-left py-4 font-bold text-primary text-lg">
-                Date
-              </th>
-              <th className="text-right py-4 font-bold text-primary text-lg">
-                Actions
-              </th>
+              <th className="text-left py-4 font-bold text-primary text-lg">Comment ID</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">Author</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">Blog ID</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">Date</th>
+              <th className="text-right py-4 font-bold text-primary text-lg">Actions</th>
             </tr>
           </thead>
           <tbody>
             {comments.map((com, index) => (
-              <tr
-                key={com._id || index}
-                className="border-b border-gray-50 hover:bg-gray-50"
-              >
+              <tr key={com._id || index} className="border-b hover:bg-gray-50">
                 <td className="py-4 text-gray-900 font-medium">{com._id}</td>
                 <td className="py-4 text-gray-900">{com.user?.username}</td>
                 <td className="py-4 text-gray-500">{com.blog?._id}</td>
@@ -136,9 +221,7 @@ export default function BlogManagement() {
           </tbody>
         </table>
       );
-    }
-
-    else if (selectedFilter === "Post") {
+    } else if (selectedFilter === "Post") {
       if (postLoading) return <p>Loading Posts...</p>;
       if (postError)
         return <p>Error: {typeof postError === "object" ? JSON.stringify(postError) : postError}</p>;
@@ -155,7 +238,7 @@ export default function BlogManagement() {
           </thead>
           <tbody>
             {blogs.map((post, index) => (
-              <tr key={post._id || index} className="border-b border-gray-50 hover:bg-gray-50">
+              <tr key={post._id || index} className="border-b hover:bg-gray-50">
                 <td className="py-4 text-gray-900 font-medium">{post.title}</td>
                 <td className="py-4 text-gray-900">{post.author?.username}</td>
                 <td className="py-4 text-gray-500">

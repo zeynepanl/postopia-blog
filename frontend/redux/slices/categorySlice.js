@@ -17,6 +17,80 @@ export const fetchCategories = createAsyncThunk(
     }
   }
 );
+
+// Kategori oluşturma için thunk
+export const createCategory = createAsyncThunk(
+  "categories/createCategory",
+  async ({ name, token }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/categories/create",
+        { name },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data.category;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Kategori oluşturulurken hata oluştu."
+      );
+    }
+  }
+);
+
+
+export const updateCategory = createAsyncThunk(
+  "categories/updateCategory",
+  async ({ id, name, token }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/categories/update",
+        { id, name },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data.category;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Kategori güncellenirken hata oluştu."
+      );
+    }
+  }
+);
+
+
+export const deleteCategory = createAsyncThunk(
+  "categories/deleteCategory",
+  async ({ id, token }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/categories/delete",
+        { id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Kategori silinirken hata oluştu."
+      );
+    }
+  }
+);
+
+
 const categorySlice = createSlice({
   name: "category",
   initialState: {
@@ -36,6 +110,19 @@ const categorySlice = createSlice({
       .addCase(fetchCategories.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
+      })
+
+       .addCase(createCategory.fulfilled, (state, action) => {
+        state.categories.push(action.payload);
+      })
+      .addCase(updateCategory.fulfilled, (state, action) => {
+        const index = state.categories.findIndex(cat => cat._id === action.payload._id);
+        if (index !== -1) {
+          state.categories[index] = action.payload;
+        }
+      })
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.categories = state.categories.filter(cat => cat._id !== action.payload);
       });
   },
 });
