@@ -5,6 +5,7 @@ import { fetchTags, addTagAPI } from "../../api/tagAPI";
 import { fetchCategories } from "../../redux/slices/categorySlice"; 
 import { FaImages } from "react-icons/fa";
 import { IoReturnUpBackOutline } from "react-icons/io5";
+import TextEditor from "./TextEditor"; // Zaten mevcut olan TextEditor bileşeni
 
 export default function EditModal({ post, onClose }) {
   const dispatch = useDispatch();
@@ -28,34 +29,29 @@ export default function EditModal({ post, onClose }) {
   const [newTag, setNewTag] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
 
-  
   useEffect(() => {
     if (token) {
       if (categories.length === 0) {
         dispatch(fetchCategories());
       }
-
       fetchTags(token)
         .then(setAvailableTags)
         .catch(error => console.error("Etiketleri alırken hata:", error));
     }
   }, [token, dispatch, categories.length]);
 
- 
   const toggleCategory = (categoryId) => {
     setSelectedCategories((prev) =>
       prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
     );
   };
 
- 
   const toggleTag = (tagId) => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
     );
   };
 
-  
   const addTag = async () => {
     if (newTag.trim() !== "" && !availableTags.some(tag => tag.name === newTag)) {
       try {
@@ -72,7 +68,6 @@ export default function EditModal({ post, onClose }) {
     }
   };
 
-  
   const handleUpdate = (e) => {
     e.preventDefault();
 
@@ -97,7 +92,7 @@ export default function EditModal({ post, onClose }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-2xl shadow-lg w-[550px] relative">
+      <div className="bg-white p-6 rounded-2xl shadow-lg w-[700px] relative max-h-[100vh] overflow-y-auto">
         <div className="flex items-center text-purple-700 font-semibold text-lg mb-4">
           <button onClick={onClose} className="mr-2 p-2 bg-white text-black rounded-full transition">
             <IoReturnUpBackOutline />
@@ -106,15 +101,17 @@ export default function EditModal({ post, onClose }) {
         </div>
 
         <form onSubmit={handleUpdate}>
+          {/* Title Alanı */}
           <label className="text-gray-700 font-semibold text-sm">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded mt-1 mb-4 text-black"
-            required
-          />
+          <div className="mb-4">
+            <TextEditor 
+              value={title} 
+              onChange={setTitle} 
+              placeholder="Enter the title here..." 
+            />
+          </div>
 
+          {/* Categories */}
           <label className="text-gray-700 font-semibold text-sm">Categories</label>
           <div className="grid grid-cols-3 gap-y-3 text-gray-700 mt-1 mb-4 text-sm">
             {categories.map(category => (
@@ -131,6 +128,7 @@ export default function EditModal({ post, onClose }) {
             ))}
           </div>
 
+          {/* Tags */}
           <label className="text-gray-700 font-semibold text-sm">Tags</label>
           <div className="flex flex-wrap items-center gap-2 mt-1 mb-4">
             {availableTags.map(tag => (
@@ -176,17 +174,18 @@ export default function EditModal({ post, onClose }) {
             </div>
           )}
 
+          {/* Content Alanı */}
           <label className="text-gray-700 font-semibold text-sm">Content</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded mt-1 mb-4 h-32 text-black"
-            placeholder="Update your post content..."
-            required
-          ></textarea>
+          <div className="mb-4">
+            <TextEditor 
+              value={content} 
+              onChange={setContent} 
+              placeholder="Update your post content..." 
+            />
+          </div>
 
           <div className="flex items-center justify-between w-full mt-6 px-4">
-            <button className="flex items-center justify-center w-12 h-12 bg-white text-black rounded-md border border-gray-300 hover:bg-gray-100 transition">
+          <button className="flex items-center justify-center w-12 h-12 bg-white text-black rounded-md border border-gray-300 hover:bg-gray-100 transition">
               <FaImages className="text-xl" />
             </button>
             <div className="flex-1 flex justify-center">

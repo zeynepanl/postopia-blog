@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleBlogLike, deleteBlog } from "@/redux/slices/blogSlice";
-import { FaRegComment, FaRegCalendarAlt, FaRegHeart, FaHeart } from "react-icons/fa";
+import {
+  FaRegComment,
+  FaRegCalendarAlt,
+  FaRegHeart,
+  FaHeart,
+} from "react-icons/fa";
 import { FiMoreVertical } from "react-icons/fi";
 import { useState } from "react";
+import DOMPurify from "dompurify";
 
 export default function BlogCard({ blog, isMyPost, onEdit }) {
   if (!blog) return null;
@@ -40,7 +46,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
 
   // **Beğeni butonu işlevi**
   const handleLike = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     e.stopPropagation();
 
     if (!token) {
@@ -73,7 +79,6 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
       {/* Blog Kartı */}
       <Link href={`/blog/${blog._id}`} className="block">
         <div className="bg-white rounded-2xl p-6 border border-gray-200 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow relative">
-          
           {/* Üst Kısım: Yazar Bilgisi */}
           <div className="flex items-center gap-3">
             <img
@@ -86,13 +91,17 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
             </span>
           </div>
 
-          {/* Başlık */}
-          <h2 className="text-xl font-semibold text-gray-900">{blog.title}</h2>
+          <h2
+            className="text-2xl font-bold text-black leading-tight line-clamp-2 break-words"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.title) }}
+          ></h2>
 
-          {/* İçerik (Önizleme) */}
-          <p className="text-gray-600 text-lg leading-relaxed line-clamp-3 overflow-hidden">
-            {contentPreview}
-          </p>
+          <div
+            className="text-lg text-gray-800 leading-relaxed line-clamp-3 break-words"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(contentPreview),
+            }}
+          ></div>
 
           <hr className="border-gray-300" />
 
@@ -112,10 +121,10 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
               </div>
 
               {/* Beğeni Butonu */}
-              <button 
-                type="button" 
-                onClick={handleLike} 
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+              <button
+                type="button"
+                onClick={handleLike}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white  text-gray-500 hover:text-red-500 transition"
               >
                 {isLiked ? (
                   <FaHeart className="text-red-500" />

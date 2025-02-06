@@ -7,13 +7,18 @@ import Sidebar from "@/components/home/Sidebar";
 import { FaRegCalendarAlt, FaBookOpen } from "react-icons/fa";
 import CommentSection from "@/components/blog/CommentSection";
 import SimilarPosts from "@/components/blog/SimilarPosts";
+import DOMPurify from "dompurify";
 
 export default function BlogDetail() {
   const router = useRouter();
   const { id } = router.query;
   const dispatch = useDispatch();
 
-  const { selectedBlog: blog, loading, error } = useSelector((state) => state.blog);
+  const {
+    selectedBlog: blog,
+    loading,
+    error,
+  } = useSelector((state) => state.blog);
 
   useEffect(() => {
     if (id) {
@@ -25,7 +30,11 @@ export default function BlogDetail() {
 
   if (error) {
     console.error("Blog detayları yüklenirken hata oluştu:", error);
-    return <p className="text-red-500 text-center">{error.message || "Bir hata oluştu"}</p>;
+    return (
+      <p className="text-red-500 text-center">
+        {error.message || "Bir hata oluştu"}
+      </p>
+    );
   }
 
   if (!blog || typeof blog !== "object" || Array.isArray(blog)) {
@@ -54,41 +63,60 @@ export default function BlogDetail() {
               alt="Author"
               className="w-20 h-20 rounded-full mb-2"
             />
-            <h2 className="text-xl font-semibold text-gray-900">{blog.author?.username}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {blog.author?.username}
+            </h2>
             <p className="text-gray-500 text-lg">Author</p>
           </div>
 
           <div className="flex justify-center gap-2 mt-2">
             {blog.tags?.map((tag, index) => (
-              <span key={index} className="bg-primary text-white px-3 py-1 rounded-full text-md">
+              <span
+                key={index}
+                className="bg-primary text-white px-3 py-1 rounded-full text-md"
+              >
                 {tag.name}
               </span>
             ))}
           </div>
 
-          <h1 className="text-3xl font-bold text-center text-gray-900 mt-6">{blog.title}</h1>
+          <h1
+            className="text-3xl font-bold text-center text-gray-900 mt-6"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.title) }}
+          ></h1>
 
           <div className="flex justify-center items-center gap-6 text-gray-600 text-md mt-3">
             <div className="flex items-center gap-1">
               <FaRegCalendarAlt className="text-lg" />
-              <span>{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "Unknown date"}</span>
+              <span>
+                {blog.createdAt
+                  ? new Date(blog.createdAt).toLocaleDateString()
+                  : "Unknown date"}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <FaBookOpen className="text-lg" />
-              <span>{blog.readTime ? `${blog.readTime} Mins Read` : "N/A"}</span>
+              <span>
+                {blog.readTime ? `${blog.readTime} Mins Read` : "N/A"}
+              </span>
             </div>
           </div>
 
           {/* Blog görseli varsa, tam URL ile gösteriyoruz */}
           {imageUrl && (
-            <img 
-              src={imageUrl} 
-              alt="Blog Image" 
-              className="rounded-xl mt-6 mx-auto w-full" 
+            <img
+              src={imageUrl}
+              alt="Blog Image"
+              className="rounded-xl mt-6 mx-auto w-full"
             />
           )}
 
-          <p className="text-gray-700 text-xl mt-6 leading-relaxed">{blog.content}</p>
+          <div
+            className="text-gray-700 text-xl mt-6 leading-relaxed"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(blog.content),
+            }}
+          ></div>
 
           {/* Yorum bölümü */}
           <CommentSection blogId={blog._id} comments={blog.comments || []} />
