@@ -169,8 +169,8 @@ export default function BlogManagement() {
             <tbody>
               {filteredCategories.map((cat) => (
                 <tr key={cat._id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-4">{cat.name}</td>
-                  <td className="py-2 px-4">{cat.blogCount || 0}</td>
+                  <td className="py-2 px-4 text-black">{cat.name}</td>
+                  <td className="py-2 px-4 text-black">{cat.blogCount || 0}</td>
                   <td className="py-2 px-4">
                     <button
                       className="mr-2 px-2 py-1 bg-blue-500 text-white rounded"
