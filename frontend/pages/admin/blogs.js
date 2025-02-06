@@ -5,7 +5,7 @@ import { FiSearch, FiFilter, FiCalendar, FiEdit, FiTrash } from "react-icons/fi"
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from "@/redux/slices/categorySlice";
 import { fetchBlogs, deleteBlog } from "@/redux/slices/blogSlice";
-import { fetchAllComments, deleteComment} from "@/redux/slices/commentSlice";
+import { fetchAllComments, deleteComment } from "@/redux/slices/commentSlice";
 
 // Import modalları (kullanıcı modallarıyla aynıysa)
 import Modal from "@/components/createPost/Modal"; // Yeni blog ekleme modalı
@@ -15,6 +15,8 @@ export default function BlogManagement() {
   const dispatch = useDispatch();
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("Category");
+  // Yeni: Arama terimi için state
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { categories, loading: catLoading, error: catError } = useSelector((state) => state.category);
   const { blogs, loading: postLoading, error: postError } = useSelector((state) => state.blog);
@@ -24,15 +26,11 @@ export default function BlogManagement() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedBlogForEdit, setSelectedBlogForEdit] = useState(null);
 
-  
-  
   const { token } = useSelector((state) => state.auth);
 
   const [newCategory, setNewCategory] = useState("");
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
-
-  
 
   // Örnek: Eğer kategori dışındaki (Post, Comment) filtrelerde token gerekli ise
   useEffect(() => {
@@ -55,9 +53,11 @@ export default function BlogManagement() {
     // Temizlik işlemleri (örneğin, modalları kapatma)
     setShowCreateModal(false);
     setSelectedBlogForEdit(null);
+    // Arama terimini de temizleyelim
+    setSearchTerm("");
 
-     // Eğer kategori filtresine geçiliyorsa, temizle
-     if(filterName === "Category"){
+    // Eğer kategori filtresine geçiliyorsa, temizle
+    if (filterName === "Category") {
       setEditCategoryId(null);
       setEditCategoryName("");
       setNewCategory("");
@@ -89,13 +89,15 @@ export default function BlogManagement() {
       dispatch(deleteCategory({ id, token }));
     }
   };
+
   // Blog silme
   const handleDeleteBlog = (blogId) => {
     if (window.confirm("Bu blogu silmek istediğinize emin misiniz?")) {
       dispatch(deleteBlog({ blogId, token }));
     }
   };
-const handleDeleteComment = (commentId, blogId) => {
+
+  const handleDeleteComment = (commentId, blogId) => {
     if (window.confirm("Bu yorumu silmek istediğinize emin misiniz?")) {
       // blogId admin panelinde her yorumun blog bilgisinde olmayabilir, bu durumda blogId'yi opsiyonel gönderebilirsiniz
       dispatch(deleteComment({ commentId, token, blogId }));
@@ -105,11 +107,17 @@ const handleDeleteComment = (commentId, blogId) => {
   const renderTable = () => {
     if (selectedFilter === "Category") {
       if (catLoading) return <p>Loading Categories...</p>;
-      if (catError) return <p>Error: {typeof catError === 'object' ? JSON.stringify(catError) : catError}</p>;
+      if (catError) return <p>Error: {typeof catError === "object" ? JSON.stringify(catError) : catError}</p>;
+
+      // Filtreleme: kategori adı searchTerm içermeli
+      const filteredCategories = categories.filter((cat) =>
+        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
       return (
         <div>
-           {/* Kategori ekleme / güncelleme formu */}
-           {editCategoryId ? (
+          {/* Kategori ekleme / güncelleme formu */}
+          {editCategoryId ? (
             <form onSubmit={handleUpdateCategory} className="mb-4 flex gap-2">
               <input
                 type="text"
@@ -119,10 +127,7 @@ const handleDeleteComment = (commentId, blogId) => {
                 className="px-4 py-2 border rounded flex-1"
                 required
               />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
                 Update
               </button>
               <button
@@ -146,11 +151,7 @@ const handleDeleteComment = (commentId, blogId) => {
                 className="px-4 py-2 border rounded flex-1"
                 required
               />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-purple-600 text-white rounded"
-                disabled={catLoading}
-              >
+              <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded" disabled={catLoading}>
                 Add Category
               </button>
             </form>
@@ -166,29 +167,33 @@ const handleDeleteComment = (commentId, blogId) => {
               </tr>
             </thead>
             <tbody>
-              {categories.map((cat) => (
+              {filteredCategories.map((cat) => (
                 <tr key={cat._id} className="border-b hover:bg-gray-50">
                   <td className="py-2 px-4">{cat.name}</td>
                   <td className="py-2 px-4">{cat.blogCount || 0}</td>
                   <td className="py-2 px-4">
-                    {/* Kategori işlemleri admin panelinde ayrıca ele alınabilir */}
-                    <button className="mr-2 px-2 py-1 bg-blue-500 text-white rounded"
-                    onClick={() => {
+                    <button
+                      className="mr-2 px-2 py-1 bg-blue-500 text-white rounded"
+                      onClick={() => {
                         setEditCategoryId(cat._id);
                         setEditCategoryName(cat.name);
                       }}
                     >
                       <FiEdit size={16} />
                     </button>
-                    <button
-                      className="px-2 py-1 bg-red-500 text-white rounded"
-                      onClick={() => handleDeleteCategory(cat._id)}
-                    >
+                    <button className="px-2 py-1 bg-red-500 text-white rounded" onClick={() => handleDeleteCategory(cat._id)}>
                       <FiTrash size={16} />
                     </button>
                   </td>
                 </tr>
               ))}
+              {filteredCategories.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="text-center py-4">
+                    No categories found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -196,12 +201,16 @@ const handleDeleteComment = (commentId, blogId) => {
     } else if (selectedFilter === "Comment") {
       if (comLoading) return <p>Loading Comments...</p>;
       if (comError)
-        return (
-          <p>
-            Error:{" "}
-            {typeof comError === "object" ? JSON.stringify(comError) : comError}
-          </p>
-        );
+        return <p>Error: {typeof comError === "object" ? JSON.stringify(comError) : comError}</p>;
+
+      // Filtreleme: yorum ID, yazar adı veya blog ID'si içerisinde searchTerm geçmeli
+      const filteredComments = comments.filter((com) => {
+        const idMatch = com._id.toLowerCase().includes(searchTerm.toLowerCase());
+        const userMatch = com.user?.username?.toLowerCase().includes(searchTerm.toLowerCase());
+        const blogMatch = com.blog?._id?.toLowerCase().includes(searchTerm.toLowerCase());
+        return idMatch || userMatch || blogMatch;
+      });
+
       return (
         <table className="w-full">
           <thead>
@@ -214,25 +223,31 @@ const handleDeleteComment = (commentId, blogId) => {
             </tr>
           </thead>
           <tbody>
-            {comments.map((com, index) => (
+            {filteredComments.map((com, index) => (
               <tr key={com._id || index} className="border-b hover:bg-gray-50">
                 <td className="py-4 text-gray-900 font-medium">{com._id}</td>
                 <td className="py-4 text-gray-900">{com.user?.username}</td>
                 <td className="py-4 text-gray-500">{com.blog?._id}</td>
-                <td className="py-4 text-gray-500">
-                  {new Date(com.createdAt).toLocaleDateString()}
-                </td>
+                <td className="py-4 text-gray-500">{new Date(com.createdAt).toLocaleDateString()}</td>
                 <td className="py-4">
                   <div className="flex justify-end gap-3">
-                   
-                    <button className="text-gray-700 bg-white hover:text-gray-600" 
-onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
+                    <button
+                      className="text-gray-700 bg-white hover:text-gray-600"
+                      onClick={() => handleDeleteComment(com._id, com.blog?._id)}
+                    >
                       <FiTrash size={20} />
                     </button>
                   </div>
                 </td>
               </tr>
             ))}
+            {filteredComments.length === 0 && (
+              <tr>
+                <td colSpan="5" className="text-center py-4">
+                  No comments found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       );
@@ -240,6 +255,18 @@ onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
       if (postLoading) return <p>Loading Posts...</p>;
       if (postError)
         return <p>Error: {typeof postError === "object" ? JSON.stringify(postError) : postError}</p>;
+
+      // Filtreleme: post başlığı, yazar adı veya kategori isimlerinde searchTerm geçmeli
+      const filteredPosts = blogs.filter((post) => {
+        const titleMatch = (post.title || "").toLowerCase().includes(searchTerm.toLowerCase());
+        const authorMatch = (post.author?.username || "").toLowerCase().includes(searchTerm.toLowerCase());
+        const categoryMatch =
+          post.categories &&
+          post.categories.some((cat) => (cat.name || "").toLowerCase().includes(searchTerm.toLowerCase()));
+        return titleMatch || authorMatch || categoryMatch;
+      });
+      
+
       return (
         <table className="w-full">
           <thead>
@@ -252,34 +279,35 @@ onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
             </tr>
           </thead>
           <tbody>
-            {blogs.map((post, index) => (
+            {filteredPosts.map((post, index) => (
               <tr key={post._id || index} className="border-b hover:bg-gray-50">
                 <td className="py-4 text-gray-900 font-medium">{post.title}</td>
                 <td className="py-4 text-gray-900">{post.author?.username}</td>
                 <td className="py-4 text-gray-500">
                   {post.categories && post.categories.length > 0
-                    ? post.categories.map(cat => cat.name).join(", ")
+                    ? post.categories.map((cat) => cat.name).join(", ")
                     : "N/A"}
                 </td>
                 <td className="py-4 text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</td>
                 <td className="py-4">
                   <div className="flex justify-end gap-3">
-                    <button
-                      className="text-gray-700 bg-white hover:text-gray-600"
-                      onClick={() => setSelectedBlogForEdit(post)}
-                    >
+                    <button className="text-gray-700 bg-white hover:text-gray-600" onClick={() => setSelectedBlogForEdit(post)}>
                       <FiEdit size={20} />
                     </button>
-                    <button
-                      className="text-gray-700 bg-white hover:text-gray-600"
-                      onClick={() => handleDeleteBlog(post._id)}
-                    >
+                    <button className="text-gray-700 bg-white hover:text-gray-600" onClick={() => handleDeleteBlog(post._id)}>
                       <FiTrash size={20} />
                     </button>
                   </div>
                 </td>
               </tr>
             ))}
+            {filteredPosts.length === 0 && (
+              <tr>
+                <td colSpan="5" className="text-center py-4">
+                  No posts found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       );
@@ -295,11 +323,13 @@ onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
         </div>
         <div className="ml-52 mt-16 flex-1 bg-[#F9FAFB] min-h-screen p-8">
           <div className="flex items-center justify-between mb-8 relative">
-            <div className="relative">
+            <div className="relative w-[400px]">
               <input
                 type="text"
                 placeholder="Search"
-                className="w-[400px] px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-600 bg-white text-gray-700 pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-600 bg-white text-gray-700 pl-10"
               />
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                 <FiSearch size={20} />
@@ -315,22 +345,13 @@ onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
               </button>
               {filterOpen && (
                 <div className="absolute top-full mt-2 left-0 w-36 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                  <button
-                    onClick={() => handleFilterSelect("Category")}
-                    className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200"
-                  >
+                  <button onClick={() => handleFilterSelect("Category")} className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">
                     Category
                   </button>
-                  <button
-                    onClick={() => handleFilterSelect("Post")}
-                    className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200"
-                  >
+                  <button onClick={() => handleFilterSelect("Post")} className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">
                     Post
                   </button>
-                  <button
-                    onClick={() => handleFilterSelect("Comment")}
-                    className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200"
-                  >
+                  <button onClick={() => handleFilterSelect("Comment")} className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">
                     Comment
                   </button>
                 </div>
@@ -343,12 +364,8 @@ onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
           </div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">{selectedFilter} List</h2>
-            {/* Eğer Post filtresi seçiliyse, “Add New Post” butonunu göster */}
             {selectedFilter === "Post" && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded"
-              >
+              <button onClick={() => setShowCreateModal(true)} className="px-4 py-2 bg-green-600 text-white rounded">
                 Add New Post
               </button>
             )}
@@ -358,16 +375,8 @@ onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
           </div>
         </div>
       </div>
-      {/* Modalları render et */}
-      {showCreateModal && (
-        <Modal onClose={() => setShowCreateModal(false)} />
-      )}
-      {selectedBlogForEdit && (
-        <EditModal
-          post={selectedBlogForEdit}
-          onClose={() => setSelectedBlogForEdit(null)}
-        />
-      )}
+      {showCreateModal && <Modal onClose={() => setShowCreateModal(false)} />}
+      {selectedBlogForEdit && <EditModal post={selectedBlogForEdit} onClose={() => setSelectedBlogForEdit(null)} />}
     </div>
   );
 }
