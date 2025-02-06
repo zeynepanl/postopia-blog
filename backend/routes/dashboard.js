@@ -40,7 +40,23 @@ router.get("/", async (req, res) => {
         }
       },
       { $sort: { count: -1 } }
-    ]);    
+    ]);
+
+    // Blog yayın trendi: Gün bazında kaç blog gönderisi yayınlanmış
+    const blogTrendAgg = await Blog.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const blogTrend = {
+      labels: blogTrendAgg.map(item => item._id),
+      counts: blogTrendAgg.map(item => item.count)
+    };
 
     res.json({
       totalBlogs,
@@ -48,7 +64,8 @@ router.get("/", async (req, res) => {
       totalComments,
       mostPopularCategory,
       categoryDistribution: categoryDistributionAgg,
-      blockedUsers, // Bu alana API yanıtında yer veriliyor
+      blockedUsers,
+      blogTrend  // Bu alan, günlük yayın trend verilerini içeriyor
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

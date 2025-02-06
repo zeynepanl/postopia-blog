@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Sidebar from "@/components/admin/Sidebar";
 import StatsCard from "@/components/admin/StatsCard";
-import VisitGraph from "@/components/admin/VisitGraph";
 import CategoryGraph from "@/components/admin/CategoryGraph";
+import BlogTrendGraph from "@/components/admin/BlogTrendGraph"; // Yeni eklenen bileşen
 import Header from "../../components/admin/Header";
 import { fetchDashboardData } from "@/redux/slices/dashboardSlice";
 
@@ -18,7 +18,6 @@ export default function AdminDashboard() {
     }
   }, [dispatch, token]);
 
-  // Eğer veriler henüz gelmemişse veya hata varsa buna göre UI gösterebilirsiniz.
   if (loading) return <p>Loading dashboard data...</p>;
   if (error) return <p>Error: {error}</p>;
 
@@ -38,38 +37,24 @@ export default function AdminDashboard() {
         <div className="flex gap-8 mb-8">
           {/* Sol taraf - Ziyaret Grafiği */}
           <div className="flex-[4]">
-            <VisitGraph data={data?.visitData} />
+            <BlogTrendGraph data={data?.blogTrend} />
           </div>
 
           {/* Sağ taraf - İstatistik Kartları */}
           <div className="flex-1 space-y-4">
-            <StatsCard
-              title="Total Blogs"
-              count={data?.totalBlogs}
-              color="purple"
-            />
-            <StatsCard
-              title="Total Users"
-              count={data?.totalUsers}
-              color="blue"
-            />
-            <StatsCard
-              title="Total Comments"
-              count={data?.totalComments}
-              color="pink"
-            />
-            <StatsCard title="Blocked Users" count={data?.blockedUsers} color="purple" />
-
+            <StatsCard title="Total Blogs" count={data?.totalBlogs} color="purple" />
+            <StatsCard title="Total Users" count={data?.totalUsers} color="blue" />
+            <StatsCard title="Total Comments" count={data?.totalComments} color="pink" />
+            <StatsCard title="Blocked Users" count={data?.blockedUsers} color="red" />
           </div>
         </div>
+
 
         {/* Alt Kısım - Popüler İçerik ve Kategori Dağılımı */}
         <div className="grid grid-cols-2 gap-8">
           {/* Popüler İçerik */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-black mb-4">
-              Most Popular
-            </h3>
+            <h3 className="text-xl font-semibold text-black mb-4">Most Popular</h3>
             <div className="space-y-4">
               <div className="flex justify-between text-sm text-secondary">
                 <span>Title</span>
@@ -77,25 +62,16 @@ export default function AdminDashboard() {
               </div>
               <ul className="space-y-3">
                 {data?.popularPosts?.slice(0, 5).map((post, index) => (
-                  <li
-                    key={post._id || index}
-                    className="flex justify-between text-gray-700"
-                  >
+                  <li key={post._id || index} className="flex justify-between text-gray-700">
                     <span>{post.title}</span>
                     <span>{post.views}</span>
                   </li>
                 ))}
               </ul>
               <div className="flex gap-4 justify-center mt-6">
-                <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg">
-                  1 Month
-                </button>
-                <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg">
-                  6 Month
-                </button>
-                <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg">
-                  12 Month
-                </button>
+                <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg">1 Month</button>
+                <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg">6 Month</button>
+                <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg">12 Month</button>
               </div>
             </div>
           </div>
