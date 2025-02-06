@@ -59,15 +59,16 @@ export const fetchLatestBlogs = createAsyncThunk(
 // Tüm blogları getirme
 export const fetchBlogs = createAsyncThunk(
   "blog/fetchBlogs",
-  async (_, { rejectWithValue }) => {
+  async (token, { rejectWithValue }) => {
     try {
-      const response = await blogAPI.getBlogs();
+      const response = await blogAPI.getBlogs(token);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
 );
+
 
 // Kullanıcının kendi bloglarını getirme
 export const fetchUserBlogs = createAsyncThunk(

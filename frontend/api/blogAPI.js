@@ -63,6 +63,15 @@ const blogAPI = {
 
       getPopularBlogs: () => axios.get(`${API_URL}/popular`),
 
+      getBlogs: (token) =>
+    axios.post(`${API_URL}/list`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }),
+
+
   
 };
 

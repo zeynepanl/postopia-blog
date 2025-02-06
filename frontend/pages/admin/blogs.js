@@ -28,9 +28,9 @@ export default function BlogManagement() {
 
   useEffect(() => {
     if (selectedFilter === "Category") {
-      dispatch(fetchCategories());
+      dispatch(fetchCategories(token));
     } else if (selectedFilter === "Post") {
-      dispatch(fetchBlogs());
+      dispatch(fetchBlogs(token));
     } else if (selectedFilter === "Comment") {
       if (!token) {
         console.error("Token bulunamadı, lütfen giriş yapın.");
@@ -120,6 +120,51 @@ export default function BlogManagement() {
                 <td className="py-4 text-gray-500">{com.blog?._id}</td>
                 <td className="py-4 text-gray-500">
                   {new Date(com.createdAt).toLocaleDateString()}
+                </td>
+                <td className="py-4">
+                  <div className="flex justify-end gap-3">
+                    <button className="text-gray-700 bg-white hover:text-gray-600">
+                      <FiEdit size={20} />
+                    </button>
+                    <button className="text-gray-700 bg-white hover:text-gray-600">
+                      <FiTrash size={20} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    }
+
+    else if (selectedFilter === "Post") {
+      if (postLoading) return <p>Loading Posts...</p>;
+      if (postError)
+        return <p>Error: {typeof postError === "object" ? JSON.stringify(postError) : postError}</p>;
+      return (
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left py-4 font-bold text-primary text-lg">Title</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">Author</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">Categories</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">Date</th>
+              <th className="text-right py-4 font-bold text-primary text-lg">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {blogs.map((post, index) => (
+              <tr key={post._id || index} className="border-b border-gray-50 hover:bg-gray-50">
+                <td className="py-4 text-gray-900 font-medium">{post.title}</td>
+                <td className="py-4 text-gray-900">{post.author?.username}</td>
+                <td className="py-4 text-gray-500">
+                  {post.categories && post.categories.length > 0
+                    ? post.categories.map(cat => cat.name).join(", ")
+                    : "N/A"}
+                </td>
+                <td className="py-4 text-gray-500">
+                  {new Date(post.createdAt).toLocaleDateString()}
                 </td>
                 <td className="py-4">
                   <div className="flex justify-end gap-3">
