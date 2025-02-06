@@ -10,6 +10,8 @@ export default function Users() {
   const { users, loading, error } = useSelector((state) => state.users);
   const { token } = useSelector((state) => state.auth);
   const [dropdownVisible, setDropdownVisible] = useState(null);
+  // Yeni: Arama terimini tutan state
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (token) {
@@ -29,6 +31,15 @@ export default function Users() {
     dispatch(makeAdmin({ id, token }));
   };
 
+  // Filtreleme: user id, username, e-mail veya role alanında searchTerm araması
+  const filteredUsers = users.filter((user) => {
+    const idMatch = (user._id || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const nameMatch = (user.username || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const emailMatch = (user.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const roleMatch = (user.role || "").toLowerCase().includes(searchTerm.toLowerCase());
+    return idMatch || nameMatch || emailMatch || roleMatch;
+  });
+
   return (
     <div className="flex">
       <Sidebar />
@@ -45,6 +56,8 @@ export default function Users() {
               <input
                 type="text"
                 placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-[400px] px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-600 bg-white text-gray-700 pl-10"
               />
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -93,7 +106,7 @@ export default function Users() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user, index) => (
+                    {filteredUsers.map((user, index) => (
                       <tr
                         key={user._id || index}
                         className="border-b border-gray-50 hover:bg-gray-50 relative"
@@ -152,6 +165,13 @@ export default function Users() {
                         </td>
                       </tr>
                     ))}
+                    {filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan="6" className="text-center py-4">
+                          No users found.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
