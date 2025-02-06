@@ -5,7 +5,7 @@ import { FiSearch, FiFilter, FiCalendar, FiEdit, FiTrash } from "react-icons/fi"
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from "@/redux/slices/categorySlice";
 import { fetchBlogs, deleteBlog } from "@/redux/slices/blogSlice";
-import { fetchAllComments } from "@/redux/slices/commentSlice";
+import { fetchAllComments, deleteComment} from "@/redux/slices/commentSlice";
 
 // Import modalları (kullanıcı modallarıyla aynıysa)
 import Modal from "@/components/createPost/Modal"; // Yeni blog ekleme modalı
@@ -93,6 +93,12 @@ export default function BlogManagement() {
   const handleDeleteBlog = (blogId) => {
     if (window.confirm("Bu blogu silmek istediğinize emin misiniz?")) {
       dispatch(deleteBlog({ blogId, token }));
+    }
+  };
+const handleDeleteComment = (commentId, blogId) => {
+    if (window.confirm("Bu yorumu silmek istediğinize emin misiniz?")) {
+      // blogId admin panelinde her yorumun blog bilgisinde olmayabilir, bu durumda blogId'yi opsiyonel gönderebilirsiniz
+      dispatch(deleteComment({ commentId, token, blogId }));
     }
   };
 
@@ -218,10 +224,9 @@ export default function BlogManagement() {
                 </td>
                 <td className="py-4">
                   <div className="flex justify-end gap-3">
-                    <button className="text-gray-700 bg-white hover:text-gray-600">
-                      <FiEdit size={20} />
-                    </button>
-                    <button className="text-gray-700 bg-white hover:text-gray-600">
+                   
+                    <button className="text-gray-700 bg-white hover:text-gray-600" 
+onClick={() => handleDeleteComment(com._id, com.blog?._id)}>
                       <FiTrash size={20} />
                     </button>
                   </div>
