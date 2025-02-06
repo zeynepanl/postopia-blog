@@ -1,17 +1,14 @@
-// src/pages/admin/users.js
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
 import { FiSearch, FiCalendar, FiMoreVertical } from "react-icons/fi";
-import { fetchUsers } from "@/redux/slices/usersSlice";
+import { fetchUsers, deleteUser, blockUser, makeAdmin } from "@/redux/slices/usersSlice";
 
 export default function Users() {
   const dispatch = useDispatch();
   const { users, loading, error } = useSelector((state) => state.users);
   const { token } = useSelector((state) => state.auth);
-
-  // dropdownVisible; her satır için ayrı state tutabiliriz (örneğin, index veya user id)
   const [dropdownVisible, setDropdownVisible] = useState(null);
 
   useEffect(() => {
@@ -19,6 +16,18 @@ export default function Users() {
       dispatch(fetchUsers(token));
     }
   }, [dispatch, token]);
+
+  const handleDelete = (id) => {
+    dispatch(deleteUser({ id, token }));
+  };
+
+  const handleBlock = (id, block) => {
+    dispatch(blockUser({ id, block, token }));
+  };
+
+  const handleMakeAdmin = (id) => {
+    dispatch(makeAdmin({ id, token }));
+  };
 
   return (
     <div className="flex">
@@ -32,7 +41,6 @@ export default function Users() {
         <div className="ml-52 mt-16 flex-1 bg-[#F9FAFB] min-h-screen p-8">
           {/* Top Controls */}
           <div className="flex items-center justify-between mb-8">
-            {/* Search Bar */}
             <div className="relative">
               <input
                 type="text"
@@ -44,7 +52,6 @@ export default function Users() {
               </span>
             </div>
 
-            {/* Date Range */}
             <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2.5 bg-white text-gray-700 hover:bg-gray-50">
               <span className="text-sm">08.01.2025 - 28.01.2025</span>
               <FiCalendar size={20} />
@@ -115,13 +122,28 @@ export default function Users() {
                           {dropdownVisible === index && (
                             <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                               <ul className="py-1 text-gray-700">
-                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                                <li
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleBlock(user._id, true)}
+                                >
                                   Block
                                 </li>
-                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                                <li
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleBlock(user._id, false)}
+                                >
+                                  Unblock
+                                </li>
+                                <li
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleDelete(user._id)}
+                                >
                                   Delete
                                 </li>
-                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                                <li
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleMakeAdmin(user._id)}
+                                >
                                   Make Admin
                                 </li>
                               </ul>

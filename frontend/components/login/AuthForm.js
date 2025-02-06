@@ -22,22 +22,24 @@ export default function AuthForm({ type }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (isLogin) {
-      const result = await dispatch(loginUser({ email: formData.email, password: formData.password }));
-
-      if (result.payload) {
-        // Kullanıcı rolüne göre yönlendirme
-        if (result.payload.user.role === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/home");
-        }
+    const result = await dispatch(loginUser({ email: formData.email, password: formData.password }));
+    
+    if (result.error) {
+      // Hata mesajını gösterin
+      console.error("Login error:", result.error.message || result.error);
+      return;
+    }
+  
+    // Eğer giriş başarılı ise result.payload.user mevcut olmalıdır
+    if (result.payload && result.payload.user) {
+      if (result.payload.user.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/home");
       }
-    } else {
-      await dispatch(registerUser(formData));
     }
   };
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4 sm:px-10">
