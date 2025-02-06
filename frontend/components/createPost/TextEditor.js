@@ -28,7 +28,8 @@ export default function TextEditor({ value, onChange, placeholder }) {
       ["bold", "italic", "underline"],               // Temel metin stilleri
       [{ list: "bullet" }, { list: "ordered" }],     // Sıralı ve sırasız liste
       [{ color: [] }, { background: [] }],           // Renk ve arka plan seçimi
-      ["clean"],                                     // Biçim temizleme
+      ["image"], // 📸 Görsel ekleme butonu eklendi
+      ["clean"],                                    // Biçim temizleme
     ],
   };
   
