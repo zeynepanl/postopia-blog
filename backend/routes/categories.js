@@ -24,12 +24,31 @@ router.post("/create", authenticateToken, isAdmin, async (req, res) => {
 //Kategorileri Listele
 router.get("/", async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.aggregate([
+      {
+        $lookup: {
+          from: "blogs",           // Blog koleksiyonunun adı (genellikle model adının küçük ve çoğul hali)
+          localField: "_id",
+          foreignField: "categories", // Blog şemasında kategorilerin saklandığı alan adı (örneğin "categories")
+          as: "blogList",
+        },
+      },
+      {
+        $addFields: {
+          blogCount: { $size: "$blogList" },
+        },
+      },
+      {
+        $project: { blogList: 0 }, // blogList'i sonuçlardan kaldırıyoruz
+      },
+    ]);
+
     res.status(200).json(categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 //Kategori Güncelle (Sadece Admin)
 router.post("/update", authenticateToken, isAdmin, async (req, res) => {
