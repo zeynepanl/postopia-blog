@@ -1,10 +1,26 @@
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Sidebar from "@/components/admin/Sidebar";
 import StatsCard from "@/components/admin/StatsCard";
-import VisitGraph from "@/components/admin/VisitGraph";
 import CategoryGraph from "@/components/admin/CategoryGraph";
+import BlogTrendGraph from "@/components/admin/BlogTrendGraph"; // Yeni eklenen bileşen
 import Header from "../../components/admin/Header";
+import { fetchDashboardData } from "@/redux/slices/dashboardSlice";
 
 export default function AdminDashboard() {
+  const dispatch = useDispatch();
+  const { token } = useSelector((state) => state.auth);
+  const { data, loading, error } = useSelector((state) => state.dashboard);
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchDashboardData(token));
+    }
+  }, [dispatch, token]);
+
+  if (loading) return <p>Loading dashboard data...</p>;
+  if (error) return <p>Error: {error}</p>;
+
   return (
     <div className="flex bg-gray-100 min-h-screen">
       {/* Header */}
@@ -21,19 +37,18 @@ export default function AdminDashboard() {
         <div className="flex gap-8 mb-8">
           {/* Sol taraf - Ziyaret Grafiği */}
           <div className="flex-[4]">
-            <VisitGraph />
+            <BlogTrendGraph data={data?.blogTrend} />
           </div>
 
           {/* Sağ taraf - İstatistik Kartları */}
           <div className="flex-1 space-y-4">
-            <StatsCard title="Total Blogs" count={215} color="purple" />
-            <StatsCard title="Total Users" count={300} color="blue" />
-            <StatsCard title="Total Comments" count={300} color="pink" />
-            <StatsCard title="Most Popular Category" count="Travel" color="purple" />
-            <StatsCard title="Active Users (Today)" count={75} color="blue" />
-
+            <StatsCard title="Total Blogs" count={data?.totalBlogs} color="purple" />
+            <StatsCard title="Total Users" count={data?.totalUsers} color="blue" />
+            <StatsCard title="Total Comments" count={data?.totalComments} color="pink" />
+            <StatsCard title="Blocked Users" count={data?.blockedUsers} color="red" />
           </div>
         </div>
+
 
         {/* Alt Kısım - Popüler İçerik ve Kategori Dağılımı */}
         <div className="grid grid-cols-2 gap-8">
@@ -46,18 +61,12 @@ export default function AdminDashboard() {
                 <span>Views</span>
               </div>
               <ul className="space-y-3">
-                <li className="flex justify-between text-gray-700">
-                  <span>Your Ultimate Guide to Stress-Free Travel</span>
-                  <span>12,857</span>
-                </li>
-                <li className="flex justify-between text-gray-700">
-                  <span>Your Ultimate Guide to Stress-Free Travel</span>
-                  <span>12,857</span>
-                </li>
-                <li className="flex justify-between text-gray-700">
-                  <span>Your Ultimate Guide to Stress-Free Travel</span>
-                  <span>12,857</span>
-                </li>
+                {data?.popularPosts?.slice(0, 5).map((post, index) => (
+                  <li key={post._id || index} className="flex justify-between text-gray-700">
+                    <span>{post.title}</span>
+                    <span>{post.views}</span>
+                  </li>
+                ))}
               </ul>
               <div className="flex gap-4 justify-center mt-6">
                 <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg">1 Month</button>
@@ -70,7 +79,7 @@ export default function AdminDashboard() {
           {/* Kategori Dağılımı */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="h-[300px] flex items-center justify-center">
-              <CategoryGraph />
+              <CategoryGraph data={data?.categoryDistribution} />
             </div>
           </div>
         </div>

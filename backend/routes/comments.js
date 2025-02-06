@@ -222,6 +222,21 @@ router.get("/:blogId", authenticateToken, async (req, res) => {
   }
 });
 
+// Tüm yorumları getiren endpoint (authenticateToken kullanabilirsiniz)
+router.get("/", authenticateToken, async (req, res) => {
+  try {
+    const comments = await Comment.find()
+      .populate("user", "username email")
+      .populate("blog", "title _id")  // Burada da post bilgilerini ekleyin.
+      .populate("replies.user", "username email")
+      .sort({ createdAt: -1 });
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 
 module.exports = router;

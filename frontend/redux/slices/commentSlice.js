@@ -91,6 +91,23 @@ export const deleteComment = createAsyncThunk(
   }
 );
 
+export const fetchAllComments = createAsyncThunk(
+  "comment/fetchAllComments",
+  async ({ token }, { rejectWithValue }) => {
+    try {
+      if (!token) {
+        return rejectWithValue("No token found.");
+      }
+      const response = await commentAPI.getAllComments(token);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
+
+
 const commentSlice = createSlice({
   name: "comment",
   initialState: {
@@ -153,6 +170,19 @@ const commentSlice = createSlice({
 
       .addCase(deleteComment.fulfilled, (state, action) => {
         state.comments = state.comments.filter((c) => c._id !== action.payload);
+      })
+
+      .addCase(fetchAllComments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllComments.fulfilled, (state, action) => {
+        state.loading = false;
+        state.comments = action.payload;
+      })
+      .addCase(fetchAllComments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

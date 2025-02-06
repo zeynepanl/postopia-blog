@@ -25,7 +25,10 @@ export const loginUser = createAsyncThunk('auth/loginUser', async (credentials, 
     }
     return response.data;
   } catch (error) {
-    return rejectWithValue(error.response.data);
+    const errorMsg =
+        (error.response && error.response.data && error.response.data.error) ||
+        "An unknown error occurred.";
+      return rejectWithValue(errorMsg);
   }
 });
 

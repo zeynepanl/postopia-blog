@@ -53,6 +53,11 @@ const commentAPI = {
             },
           }),
 
+          getAllComments: (token) =>
+            axios.get(`${API_URL}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+
     
 };
 
