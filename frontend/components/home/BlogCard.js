@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleBlogLike, deleteBlog } from "@/redux/slices/blogSlice";
-import { FaRegComment, FaRegCalendarAlt, FaRegHeart, FaHeart } from "react-icons/fa";
+import {
+  FaRegComment,
+  FaRegCalendarAlt,
+  FaRegHeart,
+  FaHeart,
+} from "react-icons/fa";
 import { FiMoreVertical } from "react-icons/fi";
 import { useState } from "react";
+import DOMPurify from "dompurify";
 
 export default function BlogCard({ blog, isMyPost, onEdit }) {
   if (!blog) return null;
@@ -40,7 +46,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
 
   // **Beğeni butonu işlevi**
   const handleLike = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     e.stopPropagation();
 
     if (!token) {
@@ -72,8 +78,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
     <div className="relative">
       {/* Blog Kartı */}
       <Link href={`/blog/${blog._id}`} className="block">
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow relative">
-          
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow relative">
           {/* Üst Kısım: Yazar Bilgisi */}
           <div className="flex items-center gap-3">
             <img
@@ -81,23 +86,27 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
               alt="Profile"
               className="w-8 h-8 rounded-full cursor-pointer"
             />
-            <span className="text-md text-gray-800 font-medium">
+            <span className="text-md text-gray-800 dark:text-gray-200 font-medium">
               {authorName}
             </span>
           </div>
 
-          {/* Başlık */}
-          <h2 className="text-xl font-semibold text-gray-900">{blog.title}</h2>
+          <h2
+            className="text-2xl font-bold text-black dark:text-white leading-tight line-clamp-2 break-words"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.title) }}
+          ></h2>
 
-          {/* İçerik (Önizleme) */}
-          <p className="text-gray-600 text-lg leading-relaxed line-clamp-3 overflow-hidden">
-            {contentPreview}
-          </p>
+          <div
+            className="text-lg text-gray-800 dark:text-gray-300 leading-relaxed line-clamp-3 break-words"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(contentPreview),
+            }}
+          ></div>
 
-          <hr className="border-gray-300" />
+          <hr className="border-gray-300 dark:border-gray-600" />
 
           {/* Alt Bilgi: Tarih, Yorum, Beğeni */}
-          <div className="flex justify-between items-center text-md text-gray-500">
+          <div className="flex justify-between items-center text-md text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-6">
               {/* Tarih */}
               <div className="flex items-center gap-2">
@@ -112,15 +121,15 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
               </div>
 
               {/* Beğeni Butonu */}
-              <button 
-                type="button" 
-                onClick={handleLike} 
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+              <button
+                type="button"
+                onClick={handleLike}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-400 dark:text-gray-300 hover:text-red-500 transition"
               >
                 {isLiked ? (
                   <FaHeart className="text-red-500" />
                 ) : (
-                  <FaRegHeart className="text-gray-400 hover:text-red-500 transition" />
+                  <FaRegHeart className="text-gray-500 dark:text-gray-300 hover:text-red-500 transition" />
                 )}
                 <span>{likeCount}</span>
               </button>
@@ -131,7 +140,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
             {tags.map((tagName, index) => (
               <span
                 key={index}
-                className="bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-md font-medium"
+                className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-100 px-3 py-1 rounded-full text-md font-medium"
               >
                 {tagName}
               </span>
@@ -150,14 +159,14 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
             }}
             className="p-0 rounded-full transition"
           >
-            <FiMoreVertical className="text-2xl bg-white rounded-full text-gray-700" />
+            <FiMoreVertical className="text-2xl bg-white dark:bg-gray-800 rounded-full text-gray-700 dark:text-gray-300" />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-lg">
+            <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
               <button
                 onClick={handleDelete}
-                className="block px-4 py-2 text-gray-700 bg-white w-full"
+                className="block px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 w-full"
               >
                 Delete Post
               </button>
@@ -166,7 +175,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
                   e.stopPropagation();
                   onEdit(blog);
                 }}
-                className="block px-4 py-2 text-gray-700 bg-white w-full"
+                className="block px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 w-full"
               >
                 Edit Post
               </button>

@@ -43,8 +43,8 @@ export default function CreatePost() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="fixed top-0 left-0 w-full bg-white z-50 shadow-md">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 z-50 shadow-md">
         <Header />
       </div>
 
@@ -54,43 +54,47 @@ export default function CreatePost() {
         <main className="flex-1 mx-auto max-w-6xl px-16">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-6 py-3 border border-gray-300 bg-white text-black font-semibold rounded-full transition mb-8"
+            className="px-6 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white font-semibold rounded-full transition mb-8"
           >
             Create New Post +
           </button>
 
-          <h2 className="text-gray-900 font-semibold text-lg mb-6">My Posts</h2>
+          <h2 className="text-gray-900 dark:text-gray-100 font-semibold text-lg mb-6">
+            My Posts
+          </h2>
 
           {error && <p className="text-red-500">{error}</p>}
-          {loading && <p className="text-gray-500">Loading...</p>}
+          {loading && (
+            <p className="text-gray-500 dark:text-gray-400">Loading...</p>
+          )}
 
           {/* Blog Kartları */}
           <div className="space-y-8">
             {userBlogs.map((post) => (
               <div
                 key={post._id}
-                className="relative cursor-pointer" 
-                onClick={() => router.push(`/blog/${post._id}`)} 
+                className="relative cursor-pointer"
+                onClick={() => router.push(`/blog/${post._id}`)}
               >
                 {/* Üç Nokta Menüsü */}
                 <div className="absolute top-4 right-4">
                   <button
                     onClick={(e) => {
-                      e.stopPropagation(); 
+                      e.stopPropagation();
                       toggleMenu(post._id);
                     }}
                     className="p-0 rounded-full transition"
                   >
-                    <FiMoreVertical className="text-2xl bg-white rounded-full text-gray-700" />
+                    <FiMoreVertical className="text-2xl bg-white dark:bg-gray-800 rounded-full text-gray-700 dark:text-gray-300" />
                   </button>
                   {menuOpen === post._id && (
-                    <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-lg">
+                    <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                       <button
                         onClick={(e) => {
                           e.stopPropagation(); // Menü açıkken yanlışlıkla sayfa açılmasını önler
                           handleDelete(post._id);
                         }}
-                        className="block px-4 py-2 text-gray-700 bg-white w-full"
+                        className="block px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 w-full"
                       >
                         Delete Post
                       </button>
@@ -99,7 +103,7 @@ export default function CreatePost() {
                           e.stopPropagation();
                           setEditingPost(post);
                         }}
-                        className="block px-4 py-2 text-gray-700 bg-white w-full"
+                        className="block px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 w-full"
                       >
                         Edit Post
                       </button>

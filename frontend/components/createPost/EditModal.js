@@ -5,6 +5,7 @@ import { fetchTags, addTagAPI } from "../../api/tagAPI";
 import { fetchCategories } from "../../redux/slices/categorySlice"; 
 import { FaImages } from "react-icons/fa";
 import { IoReturnUpBackOutline } from "react-icons/io5";
+import TextEditor from "./TextEditor"; // Zaten mevcut olan TextEditor bileşeni
 
 export default function EditModal({ post, onClose }) {
   const dispatch = useDispatch();
@@ -28,34 +29,29 @@ export default function EditModal({ post, onClose }) {
   const [newTag, setNewTag] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
 
-  
   useEffect(() => {
     if (token) {
       if (categories.length === 0) {
         dispatch(fetchCategories());
       }
-
       fetchTags(token)
         .then(setAvailableTags)
         .catch(error => console.error("Etiketleri alırken hata:", error));
     }
   }, [token, dispatch, categories.length]);
 
- 
   const toggleCategory = (categoryId) => {
     setSelectedCategories((prev) =>
       prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
     );
   };
 
- 
   const toggleTag = (tagId) => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
     );
   };
 
-  
   const addTag = async () => {
     if (newTag.trim() !== "" && !availableTags.some(tag => tag.name === newTag)) {
       try {
@@ -72,7 +68,6 @@ export default function EditModal({ post, onClose }) {
     }
   };
 
-  
   const handleUpdate = (e) => {
     e.preventDefault();
 
@@ -97,26 +92,31 @@ export default function EditModal({ post, onClose }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-2xl shadow-lg w-[550px] relative">
-        <div className="flex items-center text-purple-700 font-semibold text-lg mb-4">
-          <button onClick={onClose} className="mr-2 p-2 bg-white text-black rounded-full transition">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg w-[700px] relative max-h-[100vh] overflow-y-auto">
+        <div className="flex items-center text-purple-700 dark:text-purple-300 font-semibold text-lg mb-4">
+          <button 
+            onClick={onClose} 
+            className="mr-2 p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-full transition"
+          >
             <IoReturnUpBackOutline />
           </button>
           <span className="text-primary">Update Post</span>
         </div>
 
         <form onSubmit={handleUpdate}>
-          <label className="text-gray-700 font-semibold text-sm">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded mt-1 mb-4 text-black"
-            required
-          />
+          {/* Title Alanı */}
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Title</label>
+          <div className="mb-4">
+            <TextEditor 
+              value={title} 
+              onChange={setTitle} 
+              placeholder="Enter the title here..." 
+            />
+          </div>
 
-          <label className="text-gray-700 font-semibold text-sm">Categories</label>
-          <div className="grid grid-cols-3 gap-y-3 text-gray-700 mt-1 mb-4 text-sm">
+          {/* Categories */}
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Categories</label>
+          <div className="grid grid-cols-3 gap-y-3 text-gray-700 dark:text-gray-200 mt-1 mb-4 text-sm">
             {categories.map(category => (
               <label key={category._id} className="flex items-center gap-2 w-fit">
                 <input
@@ -131,14 +131,17 @@ export default function EditModal({ post, onClose }) {
             ))}
           </div>
 
-          <label className="text-gray-700 font-semibold text-sm">Tags</label>
+          {/* Tags */}
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Tags</label>
           <div className="flex flex-wrap items-center gap-2 mt-1 mb-4">
             {availableTags.map(tag => (
               <button
                 key={tag._id}
                 type="button"
                 className={`px-3 py-1 rounded-full text-sm ${
-                  selectedTags.includes(tag._id) ? "bg-purple-400 text-white" : "bg-gray-200 text-gray-700"
+                  selectedTags.includes(tag._id) 
+                    ? "bg-purple-400 text-white" 
+                    : "bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200"
                 }`}
                 onClick={() => toggleTag(tag._id)}
               >
@@ -150,7 +153,7 @@ export default function EditModal({ post, onClose }) {
               <button
                 type="button"
                 onClick={() => setShowTagInput(true)}
-                className="bg-white text-black border border-gray-400 px-3 py-1 rounded-md transition text-sm"
+                className="bg-white dark:bg-gray-700 text-black dark:text-white border border-gray-400 dark:border-gray-600 px-3 py-1 rounded-md transition text-sm"
               >
                 +
               </button>
@@ -163,7 +166,7 @@ export default function EditModal({ post, onClose }) {
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="border border-gray-300 p-2 rounded text-sm text-black"
+                className="border border-gray-300 dark:border-gray-600 p-2 rounded text-sm text-black dark:text-white dark:bg-gray-700"
                 placeholder="Add tag"
               />
               <button
@@ -176,17 +179,21 @@ export default function EditModal({ post, onClose }) {
             </div>
           )}
 
-          <label className="text-gray-700 font-semibold text-sm">Content</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded mt-1 mb-4 h-32 text-black"
-            placeholder="Update your post content..."
-            required
-          ></textarea>
+          {/* Content Alanı */}
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Content</label>
+          <div className="mb-4">
+            <TextEditor 
+              value={content} 
+              onChange={setContent} 
+              placeholder="Update your post content..." 
+            />
+          </div>
 
           <div className="flex items-center justify-between w-full mt-6 px-4">
-            <button className="flex items-center justify-center w-12 h-12 bg-white text-black rounded-md border border-gray-300 hover:bg-gray-100 transition">
+            <button 
+              type="button"
+              className="flex items-center justify-center w-12 h-12 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+            >
               <FaImages className="text-xl" />
             </button>
             <div className="flex-1 flex justify-center">

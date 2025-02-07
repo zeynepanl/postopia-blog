@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addComment,
@@ -7,17 +7,23 @@ import {
   updateComment,
   deleteComment,
 } from "@/redux/slices/commentSlice";
+import { FaRegUser, FaHeart, FaEllipsisH, FaReply } from "react-icons/fa";
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 
 export default function CommentSection({ blogId }) {
   const [text, setText] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedText, setEditedText] = useState("");
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const dispatch = useDispatch();
   const { comments = [], loading, error } = useSelector((state) => state.comment);
   const { token } = useSelector((state) => state.auth);
+
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     if (blogId) {
@@ -25,16 +31,15 @@ export default function CommentSection({ blogId }) {
     }
   }, [blogId, dispatch, token]);
 
-  // ✅ Yeni yorum ekleme işlemi
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;
     await dispatch(addComment({ blogId, text, token }));
     setText("");
+    setIsFocused(false);
     dispatch(fetchComments({ blogId, token }));
   };
 
-  // ✅ Yoruma yanıt ekleme işlemi
   const handleReplySubmit = async (e, commentId) => {
     e.preventDefault();
     if (!replyText.trim()) return;
@@ -44,142 +49,285 @@ export default function CommentSection({ blogId }) {
     dispatch(fetchComments({ blogId, token }));
   };
 
-  // ✅ Güncelleme başlat (Yorumu input alanına çevir)
   const startEditing = (commentId, currentText) => {
     setEditingCommentId(commentId);
     setEditedText(currentText);
+    setOpenMenuId(null);
   };
 
-  // ✅ Güncelleme işlemi
   const handleUpdate = async (commentId) => {
-    if (editedText.trim() && editedText !== comments.find((c) => c._id === commentId)?.text) {
+    if (
+      editedText.trim() &&
+      editedText !== comments.find((c) => c._id === commentId)?.text
+    ) {
       await dispatch(updateComment({ commentId, text: editedText, token }));
       dispatch(fetchComments({ blogId, token }));
     }
     setEditingCommentId(null);
   };
 
-  // ✅ Yorumu Silme İşlemi
   const handleDelete = async (commentId) => {
     await dispatch(deleteComment({ commentId, token }));
     dispatch(fetchComments({ blogId, token }));
+    setOpenMenuId(null);
+  };
+
+  // Yatay scroll fonksiyonları
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
+
+  // onMouseDown içerisinde, input/textarea/button elemanlarına dokunulursa scroll davranışını atla
+  const handleMouseDown = (e) => {
+    const tagName = e.target.tagName;
+    if (tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "BUTTON") {
+      return;
+    }
+    e.preventDefault();
+    let startX = e.pageX;
+    let scrollStart = scrollRef.current.scrollLeft;
+    const handleMouseMove = (moveEvent) => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = scrollStart - (moveEvent.pageX - startX);
+      }
+    };
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
   };
 
   return (
-    <div className="mt-8">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Yorumlar</h3>
+    <div className="mt-10 w-full max-w-5xl mx-auto">
+      <h2 className="text-xl font-semibold border-b pb-2 text-gray-800 dark:text-gray-100 dark:border-gray-700">
+        Comments
+      </h2>
 
-      {/* 📌 **Yorum Listeleme** */}
-      {loading ? (
-        <p>Yükleniyor...</p>
-      ) : error ? (
-        <p className="text-red-500">{error.message || "Yorumlar yüklenirken hata oluştu."}</p>
-      ) : !comments || comments.length === 0 ? (
-        <p className="text-gray-500">Henüz yorum yok.</p>
-      ) : (
-        <ul className="space-y-4">
-          {comments.map((comment) => (
-            <li key={comment?._id} className="border p-3 rounded-md bg-white shadow-sm">
-              <div className="flex justify-between items-center">
-                <div className="w-full">
+      {/* Yorum Ekleme Alanı */}
+      <div className="mt-4">
+        <form onSubmit={handleSubmit}>
+          <textarea
+            className={`w-full p-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 ${
+              isFocused ? "h-28 border-purple-400" : "h-10"
+            } text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-300 dark:bg-gray-700 dark:border-gray-600`}
+            placeholder="Leave a comment..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+          />
+          {isFocused && (
+            <div className="mt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                className="text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:text-black dark:hover:text-white"
+                onClick={() => {
+                  setText("");
+                  setIsFocused(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="border border-gray-400 dark:border-gray-600 px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                Send
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+
+      {/* Yorum Kartları - Yatay Scroll */}
+      <div className="relative mt-6">
+        {loading ? (
+          <p className="text-center text-gray-500 dark:text-gray-400">
+            Loading comments...
+          </p>
+        ) : error ? (
+          <p className="text-center text-red-500">
+            {error.message || "Error loading comments."}
+          </p>
+        ) : (
+          <>
+            <div
+              ref={scrollRef}
+              className="flex gap-6 overflow-hidden w-full cursor-grab"
+              onMouseDown={handleMouseDown}
+            >
+              {comments.map((comment) => (
+                <div
+                  key={comment?._id}
+                  className="relative min-w-[300px] border p-4 rounded-lg shadow-md bg-white dark:bg-gray-800 dark:border-gray-700 transition hover:shadow-lg"
+                >
+                  {/* Sağ Üst: Üç Nokta Menüsü */}
+                  {editingCommentId !== comment._id && (
+                    <div className="absolute top-2 right-2 bg-white dark:bg-gray-800">
+                      <button
+                        onClick={() =>
+                          setOpenMenuId(openMenuId === comment._id ? null : comment._id)
+                        }
+                        className="text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-gray-800 dark:hover:text-white"
+                      >
+                        <FaEllipsisH />
+                      </button>
+                      {openMenuId === comment._id && (
+                        <div className="absolute right-0 mt-2 w-28 bg-transparent border dark:border-gray-700 rounded shadow-md z-20">
+                          <button
+                            onClick={() => startEditing(comment._id, comment.text)}
+                            className="w-full text-left px-2 py-1 bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(comment._id)}
+                            className="w-full text-left px-2 py-1 bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Yorum İçeriği */}
                   {editingCommentId === comment._id ? (
-                    <div className="flex items-center gap-2">
+                    <div className="space-y-2 text-black dark:text-white">
                       <input
                         type="text"
-                        className="border rounded-md p-1 w-full text-gray-700"
+                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                         value={editedText}
                         onChange={(e) => setEditedText(e.target.value)}
                       />
-                      <button
-                        onClick={() => handleUpdate(comment._id)}
-                        className="bg-green-500 text-white px-3 py-1 rounded-md text-sm"
-                      >
-                        Kaydet
-                      </button>
-                      <button
-                        onClick={() => setEditingCommentId(null)}
-                        className="bg-gray-400 text-white px-3 py-1 rounded-md text-sm"
-                      >
-                        İptal
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdate(comment._id)}
+                          className="px-4 py-2 bg-purple-600 text-black dark:text-black rounded hover:bg-purple-700"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingCommentId(null)}
+                          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-gray-800">{comment?.text || "Yorum içeriği mevcut değil"}</p>
+                    <>
+                      <p className="text-gray-700 dark:text-gray-300 text-md break-words">
+                        {comment?.text}
+                      </p>
+                      <div className="mt-4">
+                        <div className="flex items-center gap-2 text-black dark:text-white">
+                          <FaRegUser className="text-gray-500" />
+                          <span>{comment?.user?.username || "Anonymous"}</span>
+                        </div>
+                      </div>
+
+                      {/* Sol Alt: Yanıtla ve Beğeni İkonları */}
+                      <div className="mt-4 flex items-center gap-4">
+                        <button
+                          onClick={() => setReplyingTo(comment._id)}
+                          className="text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:underline"
+                        >
+                          <FaReply />
+                        </button>
+                        <div className="flex items-center gap-1">
+                          <FaHeart className="text-gray-700 dark:text-gray-300" />
+                          <span>{comment?.likes || 0}</span>
+                        </div>
+                      </div>
+
+                      {/* Yorum Yanıtlarını Göster */}
+                      {comment?.replies && comment.replies.length > 0 && (
+                        <div className="mt-4 ml-6 border-l dark:border-gray-600 pl-4 space-y-4">
+                          {comment.replies.map((reply) => (
+                            <div
+                              key={reply?._id}
+                              className="w-full border p-3 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-700 transition hover:shadow-md"
+                            >
+                              <p className="text-gray-700 dark:text-gray-300 text-md">
+                                {reply?.text}
+                              </p>
+                              <div className="mt-2 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                <FaRegUser className="text-gray-500" />
+                                <span>{reply?.user?.username || "Anonymous"}</span>
+                                <div className="flex items-center gap-1 ml-auto">
+                                  <FaHeart className="text-gray-700 dark:text-gray-300" />
+                                  <span>{reply?.likes || 0}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
-                  <span className="text-sm text-gray-500">
-                    {comment?.user?.username || "Anonim"} -{" "}
-                    {comment?.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "Bilinmeyen tarih"}
-                  </span>
+
+                  {/* Yanıtlama Alanı */}
+                  {replyingTo === comment._id && (
+                    <form
+                      onSubmit={(e) => handleReplySubmit(e, comment._id)}
+                      className="mt-4"
+                    >
+                      <textarea
+                        className="w-full p-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                        placeholder="Write your reply..."
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        rows="3"
+                      />
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                        >
+                          Submit Reply
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setReplyingTo(null)}
+                          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
-                {!editingCommentId && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => startEditing(comment._id, comment.text)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-                    >
-                      Güncelle
-                    </button>
-                    <button
-                      onClick={() => handleDelete(comment._id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-                    >
-                      Sil
-                    </button>
-                  </div>
-                )}
-              </div>
+              ))}
+            </div>
 
-              {/* 📌 **Yanıtları Listeleme** */}
-              {comment.replies &&
-                Array.isArray(comment.replies) &&
-                comment.replies.filter(Boolean).map((reply) => (
-                  <li key={reply?._id} className="text-sm text-gray-600 p-2 ml-6 border-l-2 pl-2">
-                    <p>{reply?.text || "Yanıt içeriği bulunamadı"}</p>
-                    <span className="text-xs text-gray-500">
-                      {reply?.user?.username || "Anonim"} -{" "}
-                      {reply?.createdAt ? new Date(reply.createdAt).toLocaleDateString() : "Bilinmeyen tarih"}
-                    </span>
-                  </li>
-                ))}
-
-              {/* 📌 **Yanıt Ekleme Butonu** */}
-              <button onClick={() => setReplyingTo(comment._id)} className="text-sm text-blue-500 mt-2">
-                Yanıtla
+            {/* Sayfalama Butonları */}
+            <div className="mt-6 flex justify-center gap-4">
+              <button
+                className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition flex items-center justify-center"
+                onClick={scrollLeft}
+              >
+                <FiArrowLeft className="text-xl text-gray-700 dark:text-gray-300" />
               </button>
-
-              {/* 📌 **Yanıt Ekleme Formu** */}
-              {replyingTo === comment._id && (
-                <form onSubmit={(e) => handleReplySubmit(e, comment._id)} className="mt-2 ml-6">
-                  <textarea
-                    className="border p-2 rounded-md w-full text-sm"
-                    rows="2"
-                    placeholder="Yanıtınızı yazın..."
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                  />
-                  <button type="submit" className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm mt-2">
-                    Yanıt Gönder
-                  </button>
-                </form>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* 📌 **Yorum Ekleme Formu** */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
-        <textarea
-          className="border p-2 rounded-md w-full"
-          rows="3"
-          placeholder="Yorumunuzu yazın..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md" disabled={loading}>
-          {loading ? "Gönderiliyor..." : "Yorum Ekle"}
-        </button>
-      </form>
+              <button
+                className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition flex items-center justify-center"
+                onClick={scrollRight}
+              >
+                <FiArrowRight className="text-xl text-gray-700 dark:text-gray-300" />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

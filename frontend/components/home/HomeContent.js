@@ -11,26 +11,24 @@ export default function HomeContent() {
   const [activeTab, setActiveTab] = useState("Latest"); 
   const dispatch = useDispatch();
   
-  // Redux store'dan verileri çekiyoruz
-  const { latestBlogs, popularBlogs, blogs, selectedCategories, selectedTags,searchedBlogs, loading } = useSelector((state) => state.blog);
+  const { latestBlogs, popularBlogs, blogs, selectedCategories, selectedTags, searchedBlogs, loading } = useSelector((state) => state.blog);
 
-  // Eğer kategori seçildiyse sadece filtrelenen blogları göster
+  // Filtreleme mantığı: Eğer arama veya kategori/tag seçimi varsa, ilgili blogları göster.
   const displayedBlogs =
-  searchedBlogs.length > 0
-    ? searchedBlogs
-    : selectedCategories.length > 0
-    ? blogs
-    : selectedTags.length > 0
-    ? blogs
-    : activeTab === "Latest"
-    ? latestBlogs
-    : popularBlogs;
+    searchedBlogs.length > 0
+      ? searchedBlogs
+      : selectedCategories.length > 0
+      ? blogs
+      : selectedTags.length > 0
+      ? blogs
+      : activeTab === "Latest"
+      ? latestBlogs
+      : popularBlogs;
 
-
-  // Sekmeye göre API çağrısı yap
+  // Sekmeye göre API çağrısı
   useEffect(() => {
     if (selectedCategories.length > 0) {
-      return; // Eğer kategori seçilmişse, latest ve popular çağrılmasın
+      return; // Kategori seçilmişse, latest ve popular çağrılmasın
     }
     
     if (activeTab === "Latest") {
@@ -41,9 +39,9 @@ export default function HomeContent() {
   }, [activeTab, selectedCategories, dispatch]);
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* Sabit Header */}
-      <div className="fixed top-0 w-full bg-white z-50">
+      <div className="fixed top-0 w-full bg-white dark:bg-gray-800 z-50">
         <Header />
       </div>
 
@@ -55,12 +53,14 @@ export default function HomeContent() {
               <span
                 onClick={() => setActiveTab(tab)}
                 className={`text-xl transition-all ${
-                  activeTab === tab ? "text-primary font-semibold" : "text-gray-700"
+                  activeTab === tab 
+                    ? "text-primary font-semibold" 
+                    : "text-gray-700 dark:text-gray-300"
                 }`}
               >
                 {tab}
               </span>
-              {/* Alt Çizgiler (Seçildiğinde Gözüken Çift Çizgi) */}
+              {/* Seçili sekmede alt çizgiler */}
               {activeTab === tab && (
                 <div className="absolute left-0 w-full mt-2">
                   <div className="w-full h-[2px] bg-primary"></div>
@@ -79,22 +79,21 @@ export default function HomeContent() {
 
         {/* Ana İçerik Alanı */}
         <main className="flex-1 mx-auto max-w-6xl ml-64 mr-80">
-          {/* Yükleme İşlemi */}
           {loading ? (
-            <p className="text-center text-gray-600">Loading...</p>
+            <p className="text-center text-gray-600 dark:text-gray-400">Loading...</p>
           ) : (
             <div className="space-y-6">
               {displayedBlogs.length > 0 ? (
                 displayedBlogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)
               ) : (
-                <p className="text-center text-gray-600">No blogs found.</p>
+                <p className="text-center text-gray-600 dark:text-gray-400">No blogs found.</p>
               )}
             </div>
           )}
         </main>
 
         {/* Sabit Sağ Sidebar */}
-        <aside className="w-72 p-6 bg-white border-l border-gray-200 fixed right-0 top-[67px] h-[calc(100vh-4rem)] z-50">
+        <aside className="w-72 p-6 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 fixed right-0 top-[67px] h-[calc(100vh-4rem)] z-50">
           <div className="space-y-6">
             <CategoryList />
             <Tags />

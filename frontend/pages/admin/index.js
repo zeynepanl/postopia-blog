@@ -6,6 +6,8 @@ import CategoryGraph from "@/components/admin/CategoryGraph";
 import BlogTrendGraph from "@/components/admin/BlogTrendGraph"; // Yeni eklenen bileşen
 import Header from "../../components/admin/Header";
 import { fetchDashboardData } from "@/redux/slices/dashboardSlice";
+import DOMPurify from "dompurify";
+
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
@@ -63,7 +65,7 @@ export default function AdminDashboard() {
               <ul className="space-y-3">
                 {data?.popularPosts?.slice(0, 5).map((post, index) => (
                   <li key={post._id || index} className="flex justify-between text-gray-700">
-                    <span>{post.title}</span>
+                  <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.title) }} />
                     <span>{post.views}</span>
                   </li>
                 ))}
