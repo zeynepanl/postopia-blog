@@ -109,7 +109,9 @@ export default function CommentSection({ blogId }) {
 
   return (
     <div className="mt-10 w-full max-w-5xl mx-auto">
-      <h2 className="text-xl font-semibold border-b pb-2 text-gray-800">Comments</h2>
+      <h2 className="text-xl font-semibold border-b pb-2 text-gray-800 dark:text-gray-100 dark:border-gray-700">
+        Comments
+      </h2>
 
       {/* Yorum Ekleme Alanı */}
       <div className="mt-4">
@@ -117,7 +119,7 @@ export default function CommentSection({ blogId }) {
           <textarea
             className={`w-full p-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 ${
               isFocused ? "h-28 border-purple-400" : "h-10"
-            } text-black placeholder-gray-500`}
+            } text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-300 dark:bg-gray-700 dark:border-gray-600`}
             placeholder="Leave a comment..."
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -127,7 +129,7 @@ export default function CommentSection({ blogId }) {
             <div className="mt-2 flex justify-end gap-2">
               <button
                 type="button"
-                className="text-gray-600 bg-white b border-gray-200 hover:text-black"
+                className="text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:text-black dark:hover:text-white"
                 onClick={() => {
                   setText("");
                   setIsFocused(false);
@@ -137,7 +139,7 @@ export default function CommentSection({ blogId }) {
               </button>
               <button
                 type="submit"
-                className="border border-gray-400 px-3 py-1 rounded-lg hover:bg-gray-100"
+                className="border border-gray-400 dark:border-gray-600 px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Send
               </button>
@@ -149,7 +151,9 @@ export default function CommentSection({ blogId }) {
       {/* Yorum Kartları - Yatay Scroll */}
       <div className="relative mt-6">
         {loading ? (
-          <p className="text-center text-gray-500">Loading comments...</p>
+          <p className="text-center text-gray-500 dark:text-gray-400">
+            Loading comments...
+          </p>
         ) : error ? (
           <p className="text-center text-red-500">
             {error.message || "Error loading comments."}
@@ -164,30 +168,30 @@ export default function CommentSection({ blogId }) {
               {comments.map((comment) => (
                 <div
                   key={comment?._id}
-                  className="relative min-w-[300px] border p-4 rounded-lg shadow-md bg-white transition hover:shadow-lg"
+                  className="relative min-w-[300px] border p-4 rounded-lg shadow-md bg-white dark:bg-gray-800 dark:border-gray-700 transition hover:shadow-lg"
                 >
                   {/* Sağ Üst: Üç Nokta Menüsü */}
                   {editingCommentId !== comment._id && (
-                    <div className="absolute top-2 right-2 bg-white">
+                    <div className="absolute top-2 right-2 bg-white dark:bg-gray-800">
                       <button
                         onClick={() =>
                           setOpenMenuId(openMenuId === comment._id ? null : comment._id)
                         }
-                        className="text-gray-600 bg-white hover:text-gray-800 "
+                        className="text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-gray-800 dark:hover:text-white"
                       >
                         <FaEllipsisH />
                       </button>
                       {openMenuId === comment._id && (
-                        <div className="absolute right-0 mt-2 w-28 bg-transparent border rounded shadow-md z-20 ">
+                        <div className="absolute right-0 mt-2 w-28 bg-transparent border dark:border-gray-700 rounded shadow-md z-20">
                           <button
                             onClick={() => startEditing(comment._id, comment.text)}
-                            className="w-full text-left px-2 py-1 bg-white text-black hover:bg-gray-100 "
+                            className="w-full text-left px-2 py-1 bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(comment._id)}
-                            className="w-full text-left px-2 py-1 bg-white text-black hover:bg-gray-100"
+                            className="w-full text-left px-2 py-1 bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             Delete
                           </button>
@@ -198,17 +202,17 @@ export default function CommentSection({ blogId }) {
 
                   {/* Yorum İçeriği */}
                   {editingCommentId === comment._id ? (
-                    <div className="space-y-2 text-black ">
+                    <div className="space-y-2 text-black dark:text-white">
                       <input
                         type="text"
-                        className="w-full p-2 border rounded"
+                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                         value={editedText}
                         onChange={(e) => setEditedText(e.target.value)}
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleUpdate(comment._id)}
-                          className="px-4 py-2 bg-purple-600  taxt-black rounded hover:bg-purple-700"
+                          className="px-4 py-2 bg-purple-600 text-black dark:text-black rounded hover:bg-purple-700"
                         >
                           Save
                         </button>
@@ -222,9 +226,11 @@ export default function CommentSection({ blogId }) {
                     </div>
                   ) : (
                     <>
-                      <p className="text-gray-700 text-md break-words">{comment?.text}</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-md break-words">
+                        {comment?.text}
+                      </p>
                       <div className="mt-4">
-                        <div className="flex items-center gap-2 text-black">
+                        <div className="flex items-center gap-2 text-black dark:text-white">
                           <FaRegUser className="text-gray-500" />
                           <span>{comment?.user?.username || "Anonymous"}</span>
                         </div>
@@ -234,30 +240,32 @@ export default function CommentSection({ blogId }) {
                       <div className="mt-4 flex items-center gap-4">
                         <button
                           onClick={() => setReplyingTo(comment._id)}
-                          className="text-gray-700 bg-white hover:underline"
+                          className="text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:underline"
                         >
                           <FaReply />
                         </button>
                         <div className="flex items-center gap-1">
-                          <FaHeart className="text-gray-700" />
+                          <FaHeart className="text-gray-700 dark:text-gray-300" />
                           <span>{comment?.likes || 0}</span>
                         </div>
                       </div>
 
                       {/* Yorum Yanıtlarını Göster */}
                       {comment?.replies && comment.replies.length > 0 && (
-                        <div className="mt-4 ml-6 border-l pl-4 space-y-4">
+                        <div className="mt-4 ml-6 border-l dark:border-gray-600 pl-4 space-y-4">
                           {comment.replies.map((reply) => (
                             <div
                               key={reply?._id}
-                              className="w-full border p-3 rounded-lg shadow-sm bg-gray-100 transition hover:shadow-md"
+                              className="w-full border p-3 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-700 transition hover:shadow-md"
                             >
-                              <p className="text-gray-700 text-md">{reply?.text}</p>
-                              <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                              <p className="text-gray-700 dark:text-gray-300 text-md">
+                                {reply?.text}
+                              </p>
+                              <div className="mt-2 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                                 <FaRegUser className="text-gray-500" />
                                 <span>{reply?.user?.username || "Anonymous"}</span>
                                 <div className="flex items-center gap-1 ml-auto">
-                                  <FaHeart className="text-gray-700" />
+                                  <FaHeart className="text-gray-700 dark:text-gray-300" />
                                   <span>{reply?.likes || 0}</span>
                                 </div>
                               </div>
@@ -275,7 +283,7 @@ export default function CommentSection({ blogId }) {
                       className="mt-4"
                     >
                       <textarea
-                        className="w-full p-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 text-black placeholder-gray-500"
+                        className="w-full p-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-300 dark:bg-gray-700 dark:border-gray-600"
                         placeholder="Write your reply..."
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
@@ -305,16 +313,16 @@ export default function CommentSection({ blogId }) {
             {/* Sayfalama Butonları */}
             <div className="mt-6 flex justify-center gap-4">
               <button
-                className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition flex items-center justify-center"
+                className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition flex items-center justify-center"
                 onClick={scrollLeft}
               >
-                <FiArrowLeft className="text-xl text-gray-700" />
+                <FiArrowLeft className="text-xl text-gray-700 dark:text-gray-300" />
               </button>
               <button
-                className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition flex items-center justify-center"
+                className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition flex items-center justify-center"
                 onClick={scrollRight}
               >
-                <FiArrowRight className="text-xl text-gray-700" />
+                <FiArrowRight className="text-xl text-gray-700 dark:text-gray-300" />
               </button>
             </div>
           </>

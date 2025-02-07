@@ -1,4 +1,3 @@
-// Modal.jsx (veya ilgili modal dosyanız)
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addBlog } from "../../redux/slices/blogSlice";
@@ -124,9 +123,9 @@ export default function Modal({ onClose }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-2xl shadow-lg h-[600px] w-[700px] relative overflow-y-auto">
-        <div className="flex items-center text-purple-700 font-semibold text-lg mb-4 ">
-          <button onClick={onClose} className="mr-2 p-2 bg-white text-black rounded-full transition">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg h-[600px] w-[700px] relative overflow-y-auto">
+        <div className="flex items-center text-purple-700 dark:text-purple-300 font-semibold text-lg mb-4">
+          <button onClick={onClose} className="mr-2 p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-full transition">
             <IoReturnUpBackOutline />
           </button>
           <span className="text-primary">Create New Post</span>
@@ -135,17 +134,17 @@ export default function Modal({ onClose }) {
         {error && <p className="text-red-500">{error}</p>}
 
         <form onSubmit={handleSubmit}>
-          <label className="text-gray-700 font-semibold text-sm">Title</label>
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Title</label>
           <div className="mb-4">
-          <TextEditor
+            <TextEditor
               value={titleContent} 
               onChange={setTitleContent}
               placeholder="Enter your post content here..."
             />
           </div>
 
-          <label className="text-gray-700 font-semibold text-sm">Categories</label>
-          <div className="grid grid-cols-3 gap-y-3 text-gray-700 mt-1 mb-4 text-sm">
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Categories</label>
+          <div className="grid grid-cols-3 gap-y-3 text-gray-700 dark:text-gray-200 mt-1 mb-4 text-sm">
             {categories.map(category => (
               <label key={category._id} className="flex items-center gap-2 w-fit">
                 <input
@@ -160,7 +159,7 @@ export default function Modal({ onClose }) {
             ))}
           </div>
 
-          <label className="text-gray-700 font-semibold text-sm">Tags</label>
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Tags</label>
           <div className="flex flex-wrap items-center gap-2 mt-1 mb-4">
             {availableTags.map(tag => (
               <button
@@ -169,7 +168,7 @@ export default function Modal({ onClose }) {
                 className={`px-3 py-1 rounded-full text-sm ${
                   selectedTags.includes(tag._id)
                     ? "bg-purple-400 text-white"
-                    : "bg-gray-200 text-gray-700"
+                    : "bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200"
                 }`}
                 onClick={() =>
                   setSelectedTags(prev =>
@@ -187,7 +186,7 @@ export default function Modal({ onClose }) {
               <button
                 type="button"
                 onClick={() => setShowTagInput(true)}
-                className="bg-white text-black border border-gray-400 px-3 py-1 rounded-md transition text-sm"
+                className="bg-white dark:bg-gray-700 text-black dark:text-white border border-gray-400 dark:border-gray-600 px-3 py-1 rounded-md transition text-sm"
               >
                 +
               </button>
@@ -200,7 +199,7 @@ export default function Modal({ onClose }) {
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="border border-gray-300 p-2 rounded text-sm text-black"
+                className="border border-gray-300 dark:border-gray-600 p-2 rounded text-sm text-black dark:text-white dark:bg-gray-700"
                 placeholder="Add tag"
               />
               <button
@@ -213,10 +212,9 @@ export default function Modal({ onClose }) {
             </div>
           )}
 
-          <label className="text-gray-700 font-semibold text-sm">Content</label>
-          {/* React Quill ile zengin metin düzenleyici */}
+          <label className="text-gray-700 dark:text-gray-200 font-semibold text-sm">Content</label>
           <div className="mb-4">
-          <TextEditor
+            <TextEditor
               value={bodyContent} 
               onChange={setBodyContent}
               placeholder="Enter your post content here..."
@@ -255,7 +253,7 @@ export default function Modal({ onClose }) {
             <button
               type="button"
               onClick={handleGalleryClick}
-              className="flex items-center justify-center w-12 h-12 bg-white text-black rounded-md border border-gray-300 hover:bg-gray-100 transition"
+              className="flex items-center justify-center w-12 h-12 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition"
             >
               <FaImages className="text-xl" />
             </button>

@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
-import { FiSearch, FiFilter, FiCalendar, FiEdit, FiTrash } from "react-icons/fi";
+import {
+  FiSearch,
+  FiFilter,
+  FiCalendar,
+  FiEdit,
+  FiTrash,
+} from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories, createCategory, updateCategory, deleteCategory } from "@/redux/slices/categorySlice";
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "@/redux/slices/categorySlice";
 import { fetchBlogs, deleteBlog } from "@/redux/slices/blogSlice";
 import { fetchAllComments, deleteComment } from "@/redux/slices/commentSlice";
+import DOMPurify from "dompurify";
 
 // Import modals (if these are the same as for users)
 import Modal from "@/components/createPost/Modal"; // New blog creation modal
@@ -18,9 +30,21 @@ export default function BlogManagement() {
   // New: State for the search term
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { categories, loading: catLoading, error: catError } = useSelector((state) => state.category);
-  const { blogs, loading: postLoading, error: postError } = useSelector((state) => state.blog);
-  const { comments, loading: comLoading, error: comError } = useSelector((state) => state.comment);
+  const {
+    categories,
+    loading: catLoading,
+    error: catError,
+  } = useSelector((state) => state.category);
+  const {
+    blogs,
+    loading: postLoading,
+    error: postError,
+  } = useSelector((state) => state.blog);
+  const {
+    comments,
+    loading: comLoading,
+    error: comError,
+  } = useSelector((state) => state.comment);
 
   // Admin blog modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -77,7 +101,9 @@ export default function BlogManagement() {
   const handleUpdateCategory = (e) => {
     e.preventDefault();
     if (editCategoryName.trim() && editCategoryId) {
-      dispatch(updateCategory({ id: editCategoryId, name: editCategoryName, token }));
+      dispatch(
+        updateCategory({ id: editCategoryId, name: editCategoryName, token })
+      );
       setEditCategoryId(null);
       setEditCategoryName("");
     }
@@ -108,7 +134,12 @@ export default function BlogManagement() {
     if (selectedFilter === "Category") {
       if (catLoading) return <p>Loading Categories...</p>;
       if (catError)
-        return <p>Error: {typeof catError === "object" ? JSON.stringify(catError) : catError}</p>;
+        return (
+          <p>
+            Error:{" "}
+            {typeof catError === "object" ? JSON.stringify(catError) : catError}
+          </p>
+        );
 
       // Filter: category name must include searchTerm
       const filteredCategories = categories.filter((cat) =>
@@ -119,7 +150,10 @@ export default function BlogManagement() {
         <div>
           {/* Category add/update form */}
           {editCategoryId ? (
-            <form onSubmit={handleUpdateCategory} className="mb-4 flex gap-2 text-black">
+            <form
+              onSubmit={handleUpdateCategory}
+              className="mb-4 flex gap-2 text-black"
+            >
               <input
                 type="text"
                 placeholder="Edit category name"
@@ -128,7 +162,10 @@ export default function BlogManagement() {
                 className="px-4 py-2 border rounded flex-1"
                 required
               />
-              <button type="submit" className="px-4 py-2 bg-secondary text-white rounded">
+              <button
+                type="submit"
+                className="px-4 py-2 bg-secondary text-white rounded"
+              >
                 Update
               </button>
               <button
@@ -143,7 +180,10 @@ export default function BlogManagement() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleAddCategory} className="mb-4 flex gap-2 text-black">
+            <form
+              onSubmit={handleAddCategory}
+              className="mb-4 flex gap-2 text-black"
+            >
               <input
                 type="text"
                 placeholder="New category name"
@@ -166,16 +206,24 @@ export default function BlogManagement() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left py-4 font-bold text-primary text-lg">Category</th>
-                <th className="text-left py-4 font-bold text-primary text-lg">Number of Blog</th>
-                <th className="text-right py-4 font-bold text-primary text-lg">Actions</th>
+                <th className="text-left py-4 font-bold text-primary text-lg">
+                  Category
+                </th>
+                <th className="text-left py-4 font-bold text-primary text-lg">
+                  Number of Blog
+                </th>
+                <th className="text-right py-4 font-bold text-primary text-lg">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredCategories.map((cat) => (
                 <tr key={cat._id} className="border-b hover:bg-gray-50">
                   <td className="py-4 px-4 text-gray-900">{cat.name}</td>
-                  <td className="py-4 px-4 text-gray-900">{cat.blogCount || 0}</td>
+                  <td className="py-4 px-4 text-gray-900">
+                    {cat.blogCount || 0}
+                  </td>
                   <td className="py-4 px-4 text-right">
                     <button
                       className="mr-2 px-2 py-1 bg-white text-black rounded"
@@ -209,13 +257,24 @@ export default function BlogManagement() {
     } else if (selectedFilter === "Comment") {
       if (comLoading) return <p>Loading Comments...</p>;
       if (comError)
-        return <p>Error: {typeof comError === "object" ? JSON.stringify(comError) : comError}</p>;
+        return (
+          <p>
+            Error:{" "}
+            {typeof comError === "object" ? JSON.stringify(comError) : comError}
+          </p>
+        );
 
       // Filter: search by comment ID, author name, or blog ID
       const filteredComments = comments.filter((com) => {
-        const idMatch = com._id.toLowerCase().includes(searchTerm.toLowerCase());
-        const userMatch = com.user?.username?.toLowerCase().includes(searchTerm.toLowerCase());
-        const blogMatch = com.blog?._id?.toLowerCase().includes(searchTerm.toLowerCase());
+        const idMatch = com._id
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const userMatch = com.user?.username
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const blogMatch = com.blog?._id
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
         return idMatch || userMatch || blogMatch;
       });
 
@@ -223,11 +282,21 @@ export default function BlogManagement() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100">
-              <th className="text-left py-4 font-bold text-primary text-lg">Comment ID</th>
-              <th className="text-left py-4 font-bold text-primary text-lg">Author</th>
-              <th className="text-left py-4 font-bold text-primary text-lg">Blog ID</th>
-              <th className="text-left py-4 font-bold text-primary text-lg">Date</th>
-              <th className="text-right py-4 font-bold text-primary text-lg">Actions</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Comment ID
+              </th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Author
+              </th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Blog ID
+              </th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Date
+              </th>
+              <th className="text-right py-4 font-bold text-primary text-lg">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -236,12 +305,16 @@ export default function BlogManagement() {
                 <td className="py-4 text-gray-900 font-medium">{com._id}</td>
                 <td className="py-4 text-gray-900">{com.user?.username}</td>
                 <td className="py-4 text-gray-500">{com.blog?._id}</td>
-                <td className="py-4 text-gray-500">{new Date(com.createdAt).toLocaleDateString()}</td>
+                <td className="py-4 text-gray-500">
+                  {new Date(com.createdAt).toLocaleDateString()}
+                </td>
                 <td className="py-4">
                   <div className="flex justify-end gap-3">
                     <button
                       className="text-gray-700 bg-white hover:text-gray-600"
-                      onClick={() => handleDeleteComment(com._id, com.blog?._id)}
+                      onClick={() =>
+                        handleDeleteComment(com._id, com.blog?._id)
+                      }
                     >
                       <FiTrash size={20} />
                     </button>
@@ -262,15 +335,28 @@ export default function BlogManagement() {
     } else if (selectedFilter === "Post") {
       if (postLoading) return <p>Loading Posts...</p>;
       if (postError)
-        return <p>Error: {typeof postError === "object" ? JSON.stringify(postError) : postError}</p>;
+        return (
+          <p>
+            Error:{" "}
+            {typeof postError === "object"
+              ? JSON.stringify(postError)
+              : postError}
+          </p>
+        );
 
       // Filter: search by post title, author name, or category names
       const filteredPosts = blogs.filter((post) => {
-        const titleMatch = (post.title || "").toLowerCase().includes(searchTerm.toLowerCase());
-        const authorMatch = (post.author?.username || "").toLowerCase().includes(searchTerm.toLowerCase());
+        const titleMatch = (post.title || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const authorMatch = (post.author?.username || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
         const categoryMatch =
           post.categories &&
-          post.categories.some((cat) => (cat.name || "").toLowerCase().includes(searchTerm.toLowerCase()));
+          post.categories.some((cat) =>
+            (cat.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+          );
         return titleMatch || authorMatch || categoryMatch;
       });
 
@@ -278,24 +364,41 @@ export default function BlogManagement() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100">
-              <th className="text-left py-4 font-bold text-primary text-lg">Title</th>
-              <th className="text-left py-4 font-bold text-primary text-lg">Author</th>
-              <th className="text-left py-4 font-bold text-primary text-lg">Categories</th>
-              <th className="text-left py-4 font-bold text-primary text-lg">Date</th>
-              <th className="text-right py-4 font-bold text-primary text-lg">Actions</th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Title
+              </th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Author
+              </th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Categories
+              </th>
+              <th className="text-left py-4 font-bold text-primary text-lg">
+                Date
+              </th>
+              <th className="text-right py-4 font-bold text-primary text-lg">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {filteredPosts.map((post, index) => (
               <tr key={post._id || index} className="border-b hover:bg-gray-50">
-                <td className="py-4 text-gray-900 font-medium">{post.title}</td>
+                <td
+                  className="py-4 text-gray-900 font-medium"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(post.title),
+                  }}
+                ></td>{" "}
                 <td className="py-4 text-gray-900">{post.author?.username}</td>
                 <td className="py-4 text-gray-500">
                   {post.categories && post.categories.length > 0
                     ? post.categories.map((cat) => cat.name).join(", ")
                     : "N/A"}
                 </td>
-                <td className="py-4 text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</td>
+                <td className="py-4 text-gray-500">
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </td>
                 <td className="py-4">
                   <div className="flex justify-end gap-3">
                     <button
@@ -358,13 +461,22 @@ export default function BlogManagement() {
               </button>
               {filterOpen && (
                 <div className="absolute top-full mt-2 left-0 w-36 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                  <button onClick={() => handleFilterSelect("Category")} className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">
+                  <button
+                    onClick={() => handleFilterSelect("Category")}
+                    className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200"
+                  >
                     Category
                   </button>
-                  <button onClick={() => handleFilterSelect("Post")} className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">
+                  <button
+                    onClick={() => handleFilterSelect("Post")}
+                    className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200"
+                  >
                     Post
                   </button>
-                  <button onClick={() => handleFilterSelect("Comment")} className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200">
+                  <button
+                    onClick={() => handleFilterSelect("Comment")}
+                    className="w-full px-4 py-2 text-gray-900 bg-white hover:bg-gray-200"
+                  >
                     Comment
                   </button>
                 </div>
@@ -378,7 +490,10 @@ export default function BlogManagement() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">{selectedFilter} List</h2>
             {selectedFilter === "Post" && (
-              <button onClick={() => setShowCreateModal(true)} className="px-4 py-2 bg-secondary text-white rounded">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-secondary text-white rounded"
+              >
                 Add New Post
               </button>
             )}
@@ -389,7 +504,12 @@ export default function BlogManagement() {
         </div>
       </div>
       {showCreateModal && <Modal onClose={() => setShowCreateModal(false)} />}
-      {selectedBlogForEdit && <EditModal post={selectedBlogForEdit} onClose={() => setSelectedBlogForEdit(null)} />}
+      {selectedBlogForEdit && (
+        <EditModal
+          post={selectedBlogForEdit}
+          onClose={() => setSelectedBlogForEdit(null)}
+        />
+      )}
     </div>
   );
 }

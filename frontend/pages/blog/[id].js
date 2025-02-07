@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchBlogDetails, fetchBlogs } from "@/redux/slices/blogSlice"; // fetchBlogs eklediğinizi varsayıyoruz
+import { fetchBlogDetails, fetchBlogs } from "@/redux/slices/blogSlice";
 import Header from "@/components/home/Header";
 import Sidebar from "@/components/home/Sidebar";
 import { FaRegCalendarAlt, FaBookOpen } from "react-icons/fa";
@@ -26,7 +26,12 @@ export default function BlogDetail() {
     }
   }, [id, dispatch]);
 
-  if (loading) return <p className="text-gray-500 text-center">Loading...</p>;
+  if (loading)
+    return (
+      <p className="text-gray-500 dark:text-gray-400 text-center">
+        Loading...
+      </p>
+    );
 
   if (error) {
     console.error("Blog detayları yüklenirken hata oluştu:", error);
@@ -39,15 +44,19 @@ export default function BlogDetail() {
 
   if (!blog || typeof blog !== "object" || Array.isArray(blog)) {
     console.error("Geçersiz blog nesnesi:", blog);
-    return <p className="text-gray-600 text-xl text-center">Blog not found.</p>;
+    return (
+      <p className="text-gray-600 dark:text-gray-300 text-xl text-center">
+        Blog not found.
+      </p>
+    );
   }
 
   // Eğer blog.image varsa ve sunucudan gelen relative path içeriyorsa, base URL ekleyerek tam URL oluşturuyoruz.
   const imageUrl = blog.image ? `http://localhost:5000${blog.image}` : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="fixed top-0 left-0 w-full bg-white z-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 z-50">
         <Header />
       </div>
 
@@ -63,10 +72,10 @@ export default function BlogDetail() {
               alt="Author"
               className="w-20 h-20 rounded-full mb-2"
             />
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {blog.author?.username}
             </h2>
-            <p className="text-gray-500 text-lg">Author</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">Author</p>
           </div>
 
           <div className="flex justify-center gap-2 mt-2">
@@ -81,11 +90,13 @@ export default function BlogDetail() {
           </div>
 
           <h1
-            className="text-3xl font-bold text-center text-gray-900 mt-6 break-words"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.title) }}
+            className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mt-6 break-words"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(blog.title),
+            }}
           ></h1>
 
-          <div className="flex justify-center items-center gap-6 text-gray-600 text-md mt-3">
+          <div className="flex justify-center items-center gap-6 text-gray-600 dark:text-gray-400 text-md mt-3">
             <div className="flex items-center gap-1">
               <FaRegCalendarAlt className="text-lg" />
               <span>
@@ -112,7 +123,7 @@ export default function BlogDetail() {
           )}
 
           <div
-            className="text-gray-700 text-xl mt-6 leading-relaxed break-words"
+            className="text-gray-700 dark:text-gray-300 text-xl mt-6 leading-relaxed break-words"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(blog.content),
             }}

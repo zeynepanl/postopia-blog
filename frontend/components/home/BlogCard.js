@@ -78,7 +78,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
     <div className="relative">
       {/* Blog Kartı */}
       <Link href={`/blog/${blog._id}`} className="block">
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow relative">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow relative">
           {/* Üst Kısım: Yazar Bilgisi */}
           <div className="flex items-center gap-3">
             <img
@@ -86,27 +86,27 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
               alt="Profile"
               className="w-8 h-8 rounded-full cursor-pointer"
             />
-            <span className="text-md text-gray-800 font-medium">
+            <span className="text-md text-gray-800 dark:text-gray-200 font-medium">
               {authorName}
             </span>
           </div>
 
           <h2
-            className="text-2xl font-bold text-black leading-tight line-clamp-2 break-words"
+            className="text-2xl font-bold text-black dark:text-white leading-tight line-clamp-2 break-words"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.title) }}
           ></h2>
 
           <div
-            className="text-lg text-gray-800 leading-relaxed line-clamp-3 break-words"
+            className="text-lg text-gray-800 dark:text-gray-300 leading-relaxed line-clamp-3 break-words"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(contentPreview),
             }}
           ></div>
 
-          <hr className="border-gray-300" />
+          <hr className="border-gray-300 dark:border-gray-600" />
 
           {/* Alt Bilgi: Tarih, Yorum, Beğeni */}
-          <div className="flex justify-between items-center text-md text-gray-500">
+          <div className="flex justify-between items-center text-md text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-6">
               {/* Tarih */}
               <div className="flex items-center gap-2">
@@ -124,12 +124,12 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
               <button
                 type="button"
                 onClick={handleLike}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white  text-gray-400 hover:text-red-500 transition"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-400 dark:text-gray-300 hover:text-red-500 transition"
               >
                 {isLiked ? (
                   <FaHeart className="text-red-500" />
                 ) : (
-                  <FaRegHeart className="text-gray-500 hover:text-red-500 transition" />
+                  <FaRegHeart className="text-gray-500 dark:text-gray-300 hover:text-red-500 transition" />
                 )}
                 <span>{likeCount}</span>
               </button>
@@ -140,7 +140,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
             {tags.map((tagName, index) => (
               <span
                 key={index}
-                className="bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-md font-medium"
+                className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-100 px-3 py-1 rounded-full text-md font-medium"
               >
                 {tagName}
               </span>
@@ -159,14 +159,14 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
             }}
             className="p-0 rounded-full transition"
           >
-            <FiMoreVertical className="text-2xl bg-white rounded-full text-gray-700" />
+            <FiMoreVertical className="text-2xl bg-white dark:bg-gray-800 rounded-full text-gray-700 dark:text-gray-300" />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-lg">
+            <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
               <button
                 onClick={handleDelete}
-                className="block px-4 py-2 text-gray-700 bg-white w-full"
+                className="block px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 w-full"
               >
                 Delete Post
               </button>
@@ -175,7 +175,7 @@ export default function BlogCard({ blog, isMyPost, onEdit }) {
                   e.stopPropagation();
                   onEdit(blog);
                 }}
-                className="block px-4 py-2 text-gray-700 bg-white w-full"
+                className="block px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 w-full"
               >
                 Edit Post
               </button>
